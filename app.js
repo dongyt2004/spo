@@ -11,7 +11,7 @@ app.use(bodyParser.text({limit: '10mb'}));
 app.use(bodyParser.json({limit: '10mb'}));
 app.use(bodyParser.urlencoded({limit: '100mb', extended: false}));
 
-// 接收文本并解析spo三元组
+// 接收文本并解析三元组
 app.post("/", function (req, response) {
     console.log('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
     var text = '' + req.body;  // 原文文本
@@ -45,7 +45,7 @@ app.post("/", function (req, response) {
 });
 
 function parse(json) {
-    var nested_spo = {}, unnested_spo = {};
+    var nested_triples = {}, unnested_triples = {};
     var paras = json.xml4nlp.doc[0].para;
     for(var para_idx in paras) {
         var sents = paras[para_idx].sent;
@@ -53,14 +53,14 @@ function parse(json) {
             var words = sents[sent_idx].word;
             for(var word_idx in words) {
                 var key = fix(paras[para_idx].$.id, 2) + "-" + fix(sents[sent_idx].$.id, 2) + "-" + fix(words[word_idx].$.id, 3);
-                if ((words[word_idx].$.pos === 'v' || words[word_idx].arg && words[word_idx].$.pos !== "p") && JSON.stringify(nested_spo).indexOf(key) < 0) {
-                    Object.assign(nested_spo, parse_spo(json, unnested_spo, key, paras[para_idx].$.id, sents[sent_idx].$.id, words[word_idx], null, words));
+                if ((words[word_idx].$.pos === 'v' || words[word_idx].arg && words[word_idx].$.pos !== "p") && JSON.stringify(nested_triples).indexOf(key) < 0) {
+                    Object.assign(nested_triples, parse_triple(json, unnested_triples, key, paras[para_idx].$.id, sents[sent_idx].$.id, words[word_idx], null, words));
                 }
             }
         }
     }
-    console.log("nested_spo=" + JSON.stringify(nested_spo));  //////////////////
-    return nested_spo;
+    console.log("三元组=" + JSON.stringify(nested_triples));  //////////////////
+    return nested_triples;
 }
 
 function fix(num, length) {
@@ -71,9 +71,9 @@ word  谓语词
 father_word 父谓语词
 words   这个句子中的所有词
 */
-function parse_spo(json, unnested_spo, key, para_id, sent_id, word, father_word, words) {
-    var spo = {};
-    spo[key] = {};
+function parse_triple(json, unnested_triples, key, para_id, sent_id, word, father_word, words) {
+    var triples = {};
+    triples[key] = {};
     /*
     找主语 ********************************************************************************************************************************************************************************************
     */
@@ -85,16 +85,16 @@ function parse_spo(json, unnested_spo, key, para_id, sent_id, word, father_word,
         if (child_word.relate === 'SBV') {  // 主语中心语
             subject_found = true;
             var att = parse_att(json, para_id, sent_id, child_word, words);  // 得到主语中心语的定语
-            spo[key]["s"] = ((att === "")?"":"(" + att + ")") + child_word.cont;
+            triples[key]["s"] = ((att === "")?"":"(" + att + ")") + child_word.cont;
             break;
         }
     }
     // 按COO并列关系找主语
     if (!subject_found && word.$.relate === 'COO') {
-        var coo_word = unnested_spo[fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(word.$.parent, 3)];
+        var coo_word = unnested_triples[fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(word.$.parent, 3)];
         if (coo_word && coo_word["s"]) {
             subject_found = true;
-            spo[key]["s"] = coo_word["s"];
+            triples[key]["s"] = coo_word["s"];
         }
     }
     // 按srl A0找主语
@@ -114,7 +114,7 @@ function parse_spo(json, unnested_spo, key, para_id, sent_id, word, father_word,
                         subject += w.cont;
                     }
                 }
-                spo[key]["s"] = subject;
+                triples[key]["s"] = subject;
                 break;
             }
         }
@@ -127,7 +127,7 @@ function parse_spo(json, unnested_spo, key, para_id, sent_id, word, father_word,
             if (dbl_child_word.relate === 'DBL') {  // 兼语，因为作二级的主语，信息量小，所以加定语
                 subject_found = true;
                 att = parse_att(json, para_id, sent_id, dbl_child_word, words);  // 得到兼语的定语
-                spo[key]["s"] = ((att === "")?"":"(" + att + ")") + dbl_child_word.cont;
+                triples[key]["s"] = ((att === "")?"":"(" + att + ")") + dbl_child_word.cont;
                 break;
             }
         }
@@ -214,13 +214,13 @@ function parse_spo(json, unnested_spo, key, para_id, sent_id, word, father_word,
     for(i = 0; i < cmps.length; i++) {
         cmp += cmps[i].cont;
     }
-    spo[key]["p"] = ((adv === "")?"":"[" + adv + "]") + word.$.cont + ((cmp === "")?"":"{" + cmp + "}");
+    triples[key]["p"] = ((adv === "")?"":"[" + adv + "]") + word.$.cont + ((cmp === "")?"":"{" + cmp + "}");
     /*
     找宾语 ********************************************************************************************************************************************************************************************
     */
     // 按srl A1找宾语
     var object_found = false;
-    spo[key]["o"] = '';
+    triples[key]["o"] = '';
     if (word.arg) {
         for(arg_idx in word.arg) {
             arg = word.arg[arg_idx].$;
@@ -229,11 +229,11 @@ function parse_spo(json, unnested_spo, key, para_id, sent_id, word, father_word,
                 for(i = parseInt(arg.beg); i <= parseInt(arg.end); i++) {
                     w = words[i].$;
                     if (w.pos === 'ws') {
-                        spo[key]["o"] += w.cont + ' ';
+                        triples[key]["o"] += w.cont + ' ';
                     } else if (w.pos === 'm' && i === parseInt(arg.end) && i < words.length - 1 && words[i+1].$.pos === 'q') {
-                        spo[key]["o"] += w.cont + words[i+1].$.cont;
+                        triples[key]["o"] += w.cont + words[i+1].$.cont;
                     } else {
-                        spo[key]["o"] += w.cont;
+                        triples[key]["o"] += w.cont;
                     }
                 }
                 break;
@@ -245,27 +245,27 @@ function parse_spo(json, unnested_spo, key, para_id, sent_id, word, father_word,
         child_word = child_words[child_word_idx];
         if (child_word.$.relate === 'VOB') {  // 有宾语
             object_found = true;
-            if (child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p') {  // 二级又是spo
-                var triple = parse_spo(json, unnested_spo, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
+            if (child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p') {  // 二级又是三元组
+                var triple = parse_triple(json, unnested_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
                 if ((typeof triple) === 'string') {  //宾语是动名词
                     att = parse_att(json, para_id, sent_id, child_word, words);  // 得到宾语的定语
-                    spo[key]["o"] = ((att === "")?"":"(" + att + ")") + triple;
+                    triples[key]["o"] = ((att === "")?"":"(" + att + ")") + triple;
                 } else {
-                    spo[key]["o"] = [];
-                    spo[key]["o"].push(triple);
+                    triples[key]["o"] = [];
+                    triples[key]["o"].push(triple);
                     grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.$.id + "']");
                     for(child_word_idx in grandchild_words) {
                         grandchild_word = grandchild_words[child_word_idx];
                         if (grandchild_word.$.pos === "v" && grandchild_word.$.relate === 'COO') {
-                            triple = parse_spo(json, unnested_spo, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(grandchild_word.$.id, 3), para_id, sent_id, grandchild_word, child_word, words);
-                            spo[key]["o"].push(triple);
+                            triple = parse_triple(json, unnested_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(grandchild_word.$.id, 3), para_id, sent_id, grandchild_word, child_word, words);
+                            triples[key]["o"].push(triple);
                         }
                     }
                 }
             } else {
                 var obj = parse_att(json, para_id, sent_id, child_word, words) + child_word.$.cont;  // 带定语的宾语
-                if (obj.length > spo[key]["o"].length) {  // 宾语越长信息量越大
-                    spo[key]["o"] = obj;
+                if (obj.length > triples[key]["o"].length) {  // 宾语越长信息量越大
+                    triples[key]["o"] = obj;
                 }
             }
             break;
@@ -274,8 +274,8 @@ function parse_spo(json, unnested_spo, key, para_id, sent_id, word, father_word,
     if (!subject_found && !object_found) {
         return word.$.cont;
     }
-    Object.assign(unnested_spo, spo);
-    return spo;
+    Object.assign(unnested_triples, triples);
+    return triples;
 }
 
 // 解析定语
