@@ -1,0 +1,34 @@
+{
+  "name": "spo",
+  "version": "1.0.0",
+  "description": "解析spo三元组系统",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+http://gitlab.ruoben.com:8008/dongyt2004/spo.git"
+  },
+  "keywords": [
+    "spo",
+    "三元组"
+  ],
+  "author": "董玉涛",
+  "license": "ISC",
+  "bugs": {
+    "url": "http://gitlab.ruoben.com:8008/dongyt2004/spo/issues"
+  },
+  "homepage": "http://gitlab.ruoben.com:8008/dongyt2004/spo#readme",
+  "devDependencies": {
+    "parcel-bundler": "1.12.4"
+  },
+  "dependencies": {
+    "express": "4.17.1",
+    "request": "2.88.0",
+    "body-parser": "1.19.0",
+    "xml2js": "0.4.23",
+    "xml2js-xpath": "0.11.0",
+    "lodash": "4.17.15"
+  }
+}
