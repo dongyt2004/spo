@@ -12,10 +12,10 @@ app.use(bodyParser.json({limit: '10mb'}));
 app.use(bodyParser.urlencoded({limit: '100mb', extended: false}));
 
 // 接收文本并解析spo三元组
-app.post("/spo", function (req, response) {
+app.post("/", function (req, response) {
     console.log('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
-    var text = '' + req.body;  // 原文
-    console.log('text=' + text);  //////////////////////
+    var text = '' + req.body;  // 原文文本
+    console.log('text=' + text);  /////////////////////
     request.post({
         url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
         form: {
