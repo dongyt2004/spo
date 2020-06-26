@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0559b136-a0fc-44e2-b669-e7686f5b32c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../triple/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../triple/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../triple/app.js" afterPath="$PROJECT_DIR$/../triple/app.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../triple/package.json" afterPath="$PROJECT_DIR$/../triple/package.json" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -20,8 +20,18 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../triple/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="20" column="15" lean-forward="true" selection-start-line="20" selection-start-column="15" selection-end-line="20" selection-end-column="15" />
+            <state relative-caret-position="180">
+              <caret line="10" column="42" lean-forward="true" selection-start-line="10" selection-start-column="42" selection-end-line="10" selection-end-column="42" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../triple/package.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="72">
+              <caret line="4" column="19" lean-forward="true" selection-start-line="4" selection-start-column="19" selection-end-line="4" selection-end-column="19" />
               <folding />
             </state>
           </provider>
@@ -65,6 +75,7 @@
       <replace>word_id</replace>
       <replace>word.id</replace>
       <replace>key</replace>
+      <replace>triple</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -78,6 +89,7 @@
         <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/app.js" />
         <option value="$PROJECT_DIR$/../triple/app.js" />
+        <option value="$PROJECT_DIR$/../triple/package.json" />
       </list>
     </option>
   </component>
@@ -210,7 +222,7 @@
       <workItem from="1592817748140" duration="9000" />
       <workItem from="1592818432313" duration="33000" />
       <workItem from="1592982292700" duration="76548000" />
-      <workItem from="1593175182724" duration="1789000" />
+      <workItem from="1593175182724" duration="2175000" />
     </task>
     <task id="LOCAL-00001" summary="my commit - 2020.6.26">
       <created>1593162087971</created>
@@ -240,11 +252,18 @@
       <option name="project" value="LOCAL" />
       <updated>1593177129306</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="my commit - 2020.6.26">
+      <created>1593177833671</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1593177833671</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="164281000" />
+    <option name="totallyTimeSpent" value="164667000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -445,18 +464,19 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/1111.js" />
     <entry file="file://$PROJECT_DIR$/../triple/package.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="410">
-          <caret line="29" column="23" lean-forward="true" selection-start-line="29" selection-start-column="23" selection-end-line="29" selection-end-column="23" />
+        <state relative-caret-position="72">
+          <caret line="4" column="19" lean-forward="true" selection-start-line="4" selection-start-column="19" selection-end-line="4" selection-end-column="19" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/1111.js" />
     <entry file="file://$PROJECT_DIR$/../triple/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="20" column="15" lean-forward="true" selection-start-line="20" selection-start-column="15" selection-end-line="20" selection-end-column="15" />
+        <state relative-caret-position="180">
+          <caret line="10" column="42" lean-forward="true" selection-start-line="10" selection-start-column="42" selection-end-line="10" selection-end-column="42" />
           <folding />
         </state>
       </provider>

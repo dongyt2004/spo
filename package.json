@@ -1,25 +1,25 @@
 {
-  "name": "spo",
+  "name": "triple",
   "version": "1.0.0",
-  "description": "解析spo三元组系统",
+  "description": "解析三元组系统",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+http://gitlab.ruoben.com:8008/dongyt2004/spo.git"
+    "url": "git+https://github.com/dongyt2004/triple.git"
   },
   "keywords": [
-    "spo",
+    "triple",
     "三元组"
   ],
   "author": "董玉涛",
   "license": "ISC",
   "bugs": {
-    "url": "http://gitlab.ruoben.com:8008/dongyt2004/spo/issues"
+    "url": "https://github.com/dongyt2004/triple/issues"
   },
-  "homepage": "http://gitlab.ruoben.com:8008/dongyt2004/spo#readme",
+  "homepage": "https://github.com/dongyt2004/triple#readme",
   "devDependencies": {
     "parcel-bundler": "1.12.4"
   },
