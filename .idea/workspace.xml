@@ -20,8 +20,8 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="414">
-              <caret line="50" column="18" lean-forward="true" selection-start-line="50" selection-start-column="18" selection-end-line="50" selection-end-column="18" />
+            <state relative-caret-position="331">
+              <caret line="336" column="68" lean-forward="true" selection-start-line="336" selection-start-column="68" selection-end-line="336" selection-end-column="68" />
               <folding />
             </state>
           </provider>
@@ -59,10 +59,13 @@
       <find>spo</find>
       <find>信息量</find>
       <find>triples[key][&quot;p&quot;]</find>
-      <find>=== 'v'</find>
-      <find>=== &quot;v&quot;</find>
       <find>w.cont =</find>
       <find>att</find>
+      <find>=== 'v'</find>
+      <find>=== &quot;v&quot;</find>
+      <find>words[word_idx]</find>
+      <find>child_word = child_words[child_word_idx].$</find>
+      <find>for(child_word_idx in child_words)</find>
     </findStrings>
     <replaceStrings>
       <replace>para_id</replace>
@@ -153,7 +156,7 @@
         <subPane>
           <expand>
             <path>
-              <item name="spo" type="b2602c69:ProjectViewProjectNode" />
+              <item name="triple" type="b2602c69:ProjectViewProjectNode" />
               <item name="triple" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -219,7 +222,7 @@
       <workItem from="1592982292700" duration="76548000" />
       <workItem from="1593175182724" duration="3409000" />
       <workItem from="1593310501400" duration="5263000" />
-      <workItem from="1593322356203" duration="5952000" />
+      <workItem from="1593322356203" duration="14256000" />
     </task>
     <task id="LOCAL-00001" summary="my commit - 2020.6.26">
       <created>1593162087971</created>
@@ -312,16 +315,23 @@
       <option name="project" value="LOCAL" />
       <updated>1593328567408</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="my commit - 2020.6.26">
+      <created>1593330996584</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1593330996584</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="177116000" />
+    <option name="totallyTimeSpent" value="185420000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.12848867" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.12848867" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32910052" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32910052" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -365,7 +375,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="67" />
+      <option name="time" value="70" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -544,8 +554,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="414">
-          <caret line="50" column="18" lean-forward="true" selection-start-line="50" selection-start-column="18" selection-end-line="50" selection-end-column="18" />
+        <state relative-caret-position="331">
+          <caret line="336" column="68" lean-forward="true" selection-start-line="336" selection-start-column="68" selection-end-line="336" selection-end-column="68" />
           <folding />
         </state>
       </provider>

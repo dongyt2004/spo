@@ -49,7 +49,7 @@ app.post("/", function (req, response) {
     var text = '' + req.body;  // 原文文本
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
+        url: "http://ltp.ruoben.com:8008/ltp",  // "http://ltp-svc:12345/ltp"
         form: {
             s: text
         },
@@ -84,9 +84,10 @@ function parse(json) {
         for(var sent_idx in sents) {
             var words = sents[sent_idx].word;
             for(var word_idx in words) {
-                var key = fix(paras[para_idx].$.id, 2) + "-" + fix(sents[sent_idx].$.id, 2) + "-" + fix(words[word_idx].$.id, 3);
-                if ((words[word_idx].$.pos === 'v' || words[word_idx].arg && words[word_idx].$.pos !== "p" && words[word_idx].$.pos !== "nd" && words[word_idx].$.pos !== "nt") && JSON.stringify(nested_triples).indexOf(key) < 0) {
-                    Object.assign(nested_triples, parse_triple(json, unnested_triples, key, paras[para_idx].$.id, sents[sent_idx].$.id, words[word_idx], null, words));
+                var word = words[word_idx];
+                var key = fix(paras[para_idx].$.id, 2) + "-" + fix(sents[sent_idx].$.id, 2) + "-" + fix(word.$.id, 3);
+                if ((word.$.pos === 'v' || word.arg && word.$.pos !== "p" && word.$.pos !== "nd" && word.$.pos !== "nt") && word.$.relate !== 'ADV' && JSON.stringify(nested_triples).indexOf(key) < 0) {
+                    Object.assign(nested_triples, parse_triple(json, unnested_triples, key, paras[para_idx].$.id, sents[sent_idx].$.id, word, null, words));
                 }
             }
         }
@@ -206,10 +207,10 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
             }
         }
     }
-    // 处理修饰语的父子关系
+    // 处理修饰语和补语的父子关系
     for(child_word_idx in child_words) {
         child_word = child_words[child_word_idx].$;
-        if (child_word.relate === 'ADV' || child_word.relate === 'ATT') {
+        if (child_word.relate === 'ADV' || child_word.relate === 'ATT' || child_word.relate === 'LAD' && child_word.pos === 'u') {
             advs.push(child_word);
             var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(var grandchild_word_idx in grandchild_words) {
@@ -220,12 +221,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
                     advs.push(great_grandchild_words[great_grandchild_word_idx].$);
                 }
             }
-        }
-    }
-    // 处理补语的父子关系
-    for(child_word_idx in child_words) {
-        child_word = child_words[child_word_idx].$;
-        if (child_word.relate === 'CMP') {
+        } else if (child_word.relate === 'CMP' || child_word.relate === 'RAD' && child_word.pos === 'u') {
             cmps.push(child_word);
             grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(grandchild_word_idx in grandchild_words) {
@@ -258,6 +254,9 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
     for(i = 0; i < cmps.length; i++) {
         cmp += cmps[i].cont;
     }
+    if (cmp === '的') {  // 谓语的补语只有一个“的”字视同于没有
+        return {};
+    }
     triples[key]["p"] = ((adv === "")?"":"[[" + adv + "]]") + word.$.cont + ((cmp === "")?"":"{{" + cmp + "}}");
     /*
     找宾语 ********************************************************************************************************************************************************************************************
@@ -289,7 +288,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
         child_word = child_words[child_word_idx];
         if (child_word.$.relate === 'VOB') {  // 有宾语
             object_found = true;
-            if (child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p' && child_word.$.pos !== 'nd' && child_word.$.pos !== 'nt') {  // 二级又是三元组
+            if ((child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p' && child_word.$.pos !== 'nd' && child_word.$.pos !== 'nt') && child_word.$.relate !== "ADV") {  // 二级又是三元组
                 var triple = parse_triple(json, unnested_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
                 if ((typeof triple) === 'string') {  //宾语是动名词
                     triples[key]["o"] = triple;
@@ -335,9 +334,11 @@ function parse_att(json, para_id, sent_id, word_id, words) {
             var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(var grandchild_word_idx in grandchild_words) {
                 var grandchild_word = grandchild_words[grandchild_word_idx].$;
-                if (grandchild_word.relate === 'LAD' || grandchild_word.relate === 'RAD') {
-                    atts.push(grandchild_word);
+                var great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + grandchild_word.id + "']");
+                for(var great_grandchild_word_idx in great_grandchild_words) {
+                    atts.push(great_grandchild_words[great_grandchild_word_idx].$);
                 }
+                atts.push(grandchild_word);
             }
             atts.push(child_word);
         }
