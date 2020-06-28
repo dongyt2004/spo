@@ -272,7 +272,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
         }
     }
     if (!subject_found && !object_found) {
-        return word.$.cont;
+        return triples[key]["p"];
     }
     Object.assign(unnested_triples, triples);
     return triples;
