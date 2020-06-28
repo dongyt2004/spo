@@ -165,7 +165,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
     // 处理修饰语的父子关系
     for(child_word_idx in child_words) {
         child_word = child_words[child_word_idx].$;
-        if (child_word.relate === 'ADV') {
+        if (child_word.relate === 'ADV' || child_word.relate === 'ATT') {
             advs.push(child_word);
             var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(var grandchild_word_idx in grandchild_words) {
