@@ -11,13 +11,45 @@ app.use(bodyParser.text({limit: '10mb'}));
 app.use(bodyParser.json({limit: '10mb'}));
 app.use(bodyParser.urlencoded({limit: '100mb', extended: false}));
 
+function flatten(obj) {
+    var result = {};
+    function recurse(src, prop) {
+        var toString = Object.prototype.toString;
+        if (toString.call(src) === '[object Object]') {
+            var isEmpty = true;
+            for (var p in src) {
+                isEmpty = false;
+                recurse(src[p], prop ? prop + '.' + p : p);
+            }
+            if (isEmpty && prop) {
+                result[prop] = {};
+            }
+        } else if (toString.call(src) === '[object Array]') {
+            var len = src.length;
+            if (len > 0) {
+                src.forEach(function (item, index) {
+                    recurse(item, prop ? prop + '.[' + index + ']' : index);
+                })
+            } else {
+                result[prop] = [];
+            }
+        } else {
+            result[prop] = src;
+        }
+    }
+    if (obj) {
+        recurse(obj, '');
+    }
+    return result;
+}
+
 // 接收文本并解析三元组
 app.post("/", function (req, response) {
     console.log('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
     var text = '' + req.body;  // 原文文本
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
+        url: "http://ltp.ruoben.com:8008/ltp",  // "http://ltp-svc:12345/ltp"
         form: {
             s: text
         },
@@ -53,7 +85,7 @@ function parse(json) {
             var words = sents[sent_idx].word;
             for(var word_idx in words) {
                 var key = fix(paras[para_idx].$.id, 2) + "-" + fix(sents[sent_idx].$.id, 2) + "-" + fix(words[word_idx].$.id, 3);
-                if ((words[word_idx].$.pos === 'v' || words[word_idx].arg && words[word_idx].$.pos !== "p") && JSON.stringify(nested_triples).indexOf(key) < 0) {
+                if ((words[word_idx].$.pos === 'v' || words[word_idx].arg && words[word_idx].$.pos !== "p" && words[word_idx].$.pos !== "nd" && words[word_idx].$.pos !== "nt") && JSON.stringify(nested_triples).indexOf(key) < 0) {
                     Object.assign(nested_triples, parse_triple(json, unnested_triples, key, paras[para_idx].$.id, sents[sent_idx].$.id, words[word_idx], null, words));
                 }
             }
@@ -81,11 +113,23 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
     // 按主谓找，能找到的主语是最短的（有利于实体链接），但信息量小，所以加定语
     var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word.$.id + "']");
     for(var child_word_idx in child_words) {
-        var child_word = child_words[child_word_idx].$;
-        if (child_word.relate === 'SBV') {  // 主语中心语
+        var child_word = child_words[child_word_idx];
+        if (child_word.$.relate === 'SBV') {  // 主语中心语
             subject_found = true;
-            var att = parse_att(json, para_id, sent_id, child_word.id, words);  // 得到主语中心语的定语
-            triples[key]["s"] = ((att === "")?"":"((" + att + "))") + child_word.cont;
+            if (child_word.arg) {  // 主语又是三元组
+                var triple = parse_triple(json, unnested_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
+                if ((typeof triple) !== 'string') {  //主语是三元组
+                    var flat_triple = flatten(triple);
+                    triple = "";
+                    for (var k in flat_triple) {
+                        triple += flat_triple[k];
+                    }
+                }
+                triples[key]["s"] = triple;
+            } else {
+                var att = parse_att(json, para_id, sent_id, child_word.$.id, words);  // 得到主语中心语的定语
+                triples[key]["s"] = ((att === "")?"":"((" + att + "))") + child_word.$.cont;
+            }
             break;
         }
     }
@@ -150,7 +194,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
                     if (w.pos === 'ws') {
                         w.cont = w.cont + ' ';
                     } else if (w.pos === 'q' && words[i-1].$.pos === 'm') {
-                        w.cont = words[i-1].$.cont + w.cont;
+                        array.push(words[i-1].$);
                     }
                     array.push(w);
                 }
@@ -245,7 +289,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
         child_word = child_words[child_word_idx];
         if (child_word.$.relate === 'VOB') {  // 有宾语
             object_found = true;
-            if (child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p') {  // 二级又是三元组
+            if (child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p' && child_word.$.pos !== 'nd' && child_word.$.pos !== 'nt') {  // 二级又是三元组
                 var triple = parse_triple(json, unnested_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
                 if ((typeof triple) === 'string') {  //宾语是动名词
                     triples[key]["o"] = triple;
