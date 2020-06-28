@@ -248,8 +248,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
             if (child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p') {  // 二级又是三元组
                 var triple = parse_triple(json, unnested_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
                 if ((typeof triple) === 'string') {  //宾语是动名词
-                    att = parse_att(json, para_id, sent_id, child_word.$.id, words);  // 得到宾语的定语
-                    triples[key]["o"] = ((att === "")?"":"((" + att + "))") + triple;
+                    triples[key]["o"] = triple;
                 } else {
                     triples[key]["o"] = [];
                     triples[key]["o"].push(triple);
