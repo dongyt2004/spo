@@ -17,7 +17,7 @@ app.post("/", function (req, response) {
     var text = '' + req.body;  // 原文文本
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp.ruoben.com:8008/ltp",  // "http://ltp-svc:12345/ltp"
+        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
         form: {
             s: text
         },
