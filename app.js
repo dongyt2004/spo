@@ -49,7 +49,7 @@ app.post("/", function (req, response) {
     var text = '' + req.body;  // 原文文本
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
+        url: "http://ltp.ruoben.com:8008/ltp",  // "http://ltp-svc:12345/ltp"
         form: {
             s: text
         },
@@ -77,7 +77,7 @@ app.post("/", function (req, response) {
 });
 
 function parse(json) {
-    var nested_triples = {}, unnested_triples = {};
+    var nested_triples = {}, flat_triples = {};
     var paras = json.xml4nlp.doc[0].para;
     for(var para_idx in paras) {
         var sents = paras[para_idx].sent;
@@ -87,13 +87,31 @@ function parse(json) {
                 var word = words[word_idx];
                 var key = fix(paras[para_idx].$.id, 2) + "-" + fix(sents[sent_idx].$.id, 2) + "-" + fix(word.$.id, 3);
                 if ((word.$.pos === 'v' || word.arg && word.$.pos !== "p" && word.$.pos !== "nd" && word.$.pos !== "nt") && word.$.relate !== 'ADV' && JSON.stringify(nested_triples).indexOf(key) < 0) {
-                    Object.assign(nested_triples, parse_triple(json, unnested_triples, key, paras[para_idx].$.id, sents[sent_idx].$.id, word, null, words));
+                    Object.assign(nested_triples, parse_triple(json, flat_triples, key, paras[para_idx].$.id, sents[sent_idx].$.id, word, null, words));
                 }
             }
         }
     }
-    console.log("三元组=" + JSON.stringify(nested_triples));  //////////////////
-    return nested_triples;
+    var array = [];
+    for(var id in nested_triples) {
+        var instance = {};
+        instance[id] = nested_triples[id];
+        array.push(instance);
+    }
+    discard_id(array);
+    console.log("三元组=" + JSON.stringify(array));  //////////////////
+    return array;
+}
+
+function discard_id(array) {
+    for(var index=0; index<array.length; index++) {
+        for(var id in array[index]) {
+            array[index] = array[index][id];
+        }
+        if (array[index].o && (typeof array[index].o) !== 'string') {
+            discard_id(array[index].o);
+        }
+    }
 }
 
 function fix(num, length) {
@@ -104,7 +122,7 @@ word  谓语词
 father_word 父谓语词
 words   这个句子中的所有词
 */
-function parse_triple(json, unnested_triples, key, para_id, sent_id, word, father_word, words) {
+function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_word, words) {
     var triples = {};
     triples[key] = {};
     /*
@@ -118,9 +136,9 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
         if (child_word.$.relate === 'SBV') {  // 主语中心语
             subject_found = true;
             if (child_word.arg) {  // 主语又是三元组
-                var triple = parse_triple(json, unnested_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
+                var triple = parse_triple(json, flat_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
                 if ((typeof triple) !== 'string') {  //主语是三元组
-                    var flat_triple = flatten(triple);
+                    var flat_triple = flatten(triple);  // 扁平化
                     triple = "";
                     for (var k in flat_triple) {
                         triple += flat_triple[k];
@@ -136,7 +154,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
     }
     // 按COO并列关系找主语
     if (!subject_found && word.$.relate === 'COO') {
-        var coo_word = unnested_triples[fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(word.$.parent, 3)];
+        var coo_word = flat_triples[fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(word.$.parent, 3)];
         if (coo_word && coo_word["s"]) {
             subject_found = true;
             triples[key]["s"] = coo_word["s"];
@@ -181,7 +199,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
         return {};
     }
     /*
-    找谓语修饰语和补语（动补结构），合并到谓语中 *************************************************************************************************************************************
+    找谓语修饰语和补语（动补结构），合并到谓语中 *********************************************************************************************************************************************************
     */
     var advs = [], cmps = [];
     // 处理arg
@@ -289,7 +307,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
         if (child_word.$.relate === 'VOB') {  // 有宾语
             object_found = true;
             if ((child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p' && child_word.$.pos !== 'nd' && child_word.$.pos !== 'nt') && child_word.$.relate !== "ADV") {  // 二级又是三元组
-                var triple = parse_triple(json, unnested_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
+                var triple = parse_triple(json, flat_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
                 if ((typeof triple) === 'string') {  //宾语是动名词
                     triples[key]["o"] = triple;
                 } else {
@@ -299,7 +317,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
                     for(child_word_idx in grandchild_words) {
                         grandchild_word = grandchild_words[child_word_idx];
                         if (grandchild_word.$.pos === "v" && grandchild_word.$.relate === 'COO') {
-                            triple = parse_triple(json, unnested_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(grandchild_word.$.id, 3), para_id, sent_id, grandchild_word, child_word, words);
+                            triple = parse_triple(json, flat_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(grandchild_word.$.id, 3), para_id, sent_id, grandchild_word, child_word, words);
                             triples[key]["o"].push(triple);
                         }
                     }
@@ -317,7 +335,7 @@ function parse_triple(json, unnested_triples, key, para_id, sent_id, word, fathe
     if (!subject_found && !object_found) {
         return triples[key]["p"];
     }
-    Object.assign(unnested_triples, triples);
+    Object.assign(flat_triples, triples);
     return triples;
 }
 
