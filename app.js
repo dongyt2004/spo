@@ -46,7 +46,7 @@ function flatten(obj) {
 // 接收文本并解析三元组
 app.post("/", function (req, response) {
     console.log('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
-    var text = JSON.parse(JSON.stringify(req.body));  // 原文文本
+    var text = JSON.parse(JSON.stringify(req.body));  // 中文原始文本
     if ((typeof text) !== 'string') {
         text = Object.keys(text)[0];  // python调用时
     }
