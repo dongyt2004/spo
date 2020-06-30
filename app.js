@@ -46,7 +46,8 @@ function flatten(obj) {
 // 接收文本并解析三元组
 app.post("/", function (req, response) {
     console.log('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
-    var text = req.body;  // 原文文本
+    console.log(req.body);  ////////////////
+    var text = '' + req.body;  // 原文文本
     console.log('text=' + text);  /////////////////////
     request.post({
         url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
