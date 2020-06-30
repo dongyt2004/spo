@@ -47,6 +47,7 @@ function flatten(obj) {
 app.post("/", function (req, response) {
     console.log('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
     console.log(JSON.parse(JSON.stringify(req.body)));  ////////////////
+    console.log(Object.keys(JSON.parse(JSON.stringify(req.body)))[0]);  ////////////////
     var text = '' + req.body;  // 原文文本
     console.log('text=' + text);  /////////////////////
     request.post({
