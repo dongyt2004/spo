@@ -46,9 +46,10 @@ function flatten(obj) {
 // 接收文本并解析三元组
 app.post("/", function (req, response) {
     console.log('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
-    console.log(JSON.parse(JSON.stringify(req.body)));  ////////////////
-    console.log(Object.keys(JSON.parse(JSON.stringify(req.body)))[0]);  ////////////////
-    var text = '' + req.body;  // 原文文本
+    var text = JSON.parse(JSON.stringify(req.body));  // 原文文本
+    if ((typeof text) !== 'string') {
+        text = Object.keys(text)[0];  // python调用时
+    }
     console.log('text=' + text);  /////////////////////
     request.post({
         url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
