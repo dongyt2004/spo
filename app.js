@@ -46,7 +46,7 @@ function flatten(obj) {
 // 接收文本并解析三元组
 app.post("/", function (req, response) {
     console.log('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
-    console.log(req.body);  ////////////////
+    console.log(JSON.parse(JSON.stringify(req.body)));  ////////////////
     var text = '' + req.body;  // 原文文本
     console.log('text=' + text);  /////////////////////
     request.post({
