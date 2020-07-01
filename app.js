@@ -52,7 +52,7 @@ app.post("/", function (req, response) {
     }
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
+        url: "http://ltp.ruoben.com:8008/ltp",  // "http://ltp-svc:12345/ltp"
         form: {
             s: text
         },
@@ -108,8 +108,10 @@ function parse(json) {
 
 function discard_id(array) {
     for(var index=0; index<array.length; index++) {
-        for(var id in array[index]) {
-            array[index] = array[index][id];
+        if ((typeof  array[index]) !== 'string') {
+            for(var id in array[index]) {
+                array[index] = array[index][id];
+            }
         }
         if (array[index].o && (typeof array[index].o) !== 'string') {
             discard_id(array[index].o);
