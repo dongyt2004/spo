@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="0559b136-a0fc-44e2-b669-e7686f5b32c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app.js" afterPath="$PROJECT_DIR$/app.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -38,8 +37,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>word.cont</find>
-      <find>fix(para_id, 2) + &quot;-&quot; + fix(sent_id, 2) + &quot;-&quot; + fix(word.id, 3)</find>
       <find>word.arg</find>
       <find>spo[key][&quot;s&quot;]</find>
       <find>found</find>
@@ -68,6 +65,8 @@
       <find>create to lose</find>
       <find>may cause</find>
       <find>including the Indian Express ,</find>
+      <find>---</find>
+      <find>tokens</find>
     </findStrings>
     <replaceStrings>
       <replace>para_id</replace>
@@ -93,6 +92,7 @@
         <option value="$PROJECT_DIR$/111111111.js" />
         <option value="$PROJECT_DIR$/app.js" />
         <option value="$PROJECT_DIR$/app.js" />
+        <option value="$PROJECT_DIR$/1111111.js" />
       </list>
     </option>
   </component>
@@ -233,7 +233,7 @@
       <workItem from="1593431771628" duration="631000" />
       <workItem from="1593482215032" duration="5092000" />
       <workItem from="1593495565846" duration="6231000" />
-      <workItem from="1593512576902" duration="14442000" />
+      <workItem from="1593512576902" duration="18883000" />
     </task>
     <task id="LOCAL-00001" summary="my commit - 2020.6.26">
       <created>1593162087971</created>
@@ -417,11 +417,18 @@
       <option name="project" value="LOCAL" />
       <updated>1593575607743</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="my commit - 2020.6.26">
+      <created>1593575941568</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1593575941568</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="217627000" />
+    <option name="totallyTimeSpent" value="222068000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -700,6 +707,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="272">
           <caret line="259" column="145" lean-forward="true" selection-start-line="259" selection-start-column="145" selection-end-line="259" selection-end-column="145" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/1111111.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="936" column="20" lean-forward="true" selection-start-line="936" selection-start-column="20" selection-end-line="936" selection-end-column="20" />
           <folding />
         </state>
       </provider>
