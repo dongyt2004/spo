@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0559b136-a0fc-44e2-b669-e7686f5b32c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app.js" afterPath="$PROJECT_DIR$/app.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -19,8 +20,8 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="329">
-              <caret line="53" column="18" lean-forward="true" selection-start-line="53" selection-start-column="18" selection-end-line="53" selection-end-column="18" />
+            <state relative-caret-position="486">
+              <caret line="249" column="25" lean-forward="true" selection-start-line="249" selection-start-column="25" selection-end-line="249" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -37,36 +38,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>word.arg</find>
-      <find>spo[key][&quot;s&quot;]</find>
-      <find>found</find>
-      <find>object</find>
-      <find>sortBy</find>
-      <find>parseInt(arg.beg)</find>
-      <find>child_word</find>
-      <find>grandchild_words</find>
-      <find>grandchild_word</find>
-      <find>var i</find>
-      <find>arg</find>
-      <find>w = words[i].$</find>
-      <find>triple</find>
       <find>spo</find>
       <find>信息量</find>
       <find>triples[key][&quot;p&quot;]</find>
       <find>w.cont =</find>
-      <find>att</find>
       <find>=== 'v'</find>
       <find>=== &quot;v&quot;</find>
       <find>words[word_idx]</find>
       <find>child_word = child_words[child_word_idx].$</find>
       <find>for(child_word_idx in child_words)</find>
-      <find>flatten</find>
       <find>typeof</find>
       <find>create to lose</find>
       <find>may cause</find>
       <find>including the Indian Express ,</find>
       <find>---</find>
       <find>tokens</find>
+      <find>if (word.arg)</find>
+      <find>word.arg</find>
+      <find>replace</find>
+      <find>ws</find>
+      <find>|| child_word.relate === 'SBV'</find>
+      <find>att</find>
+      <find>flatten</find>
+      <find>atts</find>
+      <find>triples[key][&quot;o&quot;]</find>
+      <find>nh</find>
+      <find>'('</find>
+      <find>advs[i+1]</find>
+      <find>&quot;(&quot;</find>
+      <find>advs</find>
+      <find>adv</find>
     </findStrings>
     <replaceStrings>
       <replace>para_id</replace>
@@ -75,6 +76,15 @@
       <replace>word.id</replace>
       <replace>key</replace>
       <replace>triple</replace>
+      <replace>adv</replace>
+      <replace>advs</replace>
+      <replace>a1</replace>
+      <replace>vob</replace>
+      <replace>'['</replace>
+      <replace>w.$</replace>
+      <replace>&quot;[&quot;</replace>
+      <replace>cmps</replace>
+      <replace>cmp</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -90,9 +100,10 @@
         <option value="$PROJECT_DIR$/aaaaaaa.js" />
         <option value="$PROJECT_DIR$/11111.js" />
         <option value="$PROJECT_DIR$/111111111.js" />
-        <option value="$PROJECT_DIR$/app.js" />
-        <option value="$PROJECT_DIR$/app.js" />
         <option value="$PROJECT_DIR$/1111111.js" />
+        <option value="$PROJECT_DIR$/aaaaaaaaa.js" />
+        <option value="$PROJECT_DIR$/app.js" />
+        <option value="$PROJECT_DIR$/app.js" />
       </list>
     </option>
   </component>
@@ -155,7 +166,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -167,7 +178,7 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -233,7 +244,19 @@
       <workItem from="1593431771628" duration="631000" />
       <workItem from="1593482215032" duration="5092000" />
       <workItem from="1593495565846" duration="6231000" />
-      <workItem from="1593512576902" duration="18883000" />
+      <workItem from="1593512576902" duration="20119000" />
+      <workItem from="1593912755585" duration="27000" />
+      <workItem from="1594195728544" duration="23561000" />
+      <workItem from="1594696614359" duration="1466000" />
+      <workItem from="1594699918352" duration="1648000" />
+      <workItem from="1594739921339" duration="289000" />
+      <workItem from="1594784486581" duration="300000" />
+      <workItem from="1594785080560" duration="32303000" />
+      <workItem from="1594952527428" duration="608000" />
+      <workItem from="1594955998761" duration="1931000" />
+      <workItem from="1594958311546" duration="2735000" />
+      <workItem from="1594974511748" duration="919000" />
+      <workItem from="1594981214168" duration="16275000" />
     </task>
     <task id="LOCAL-00001" summary="my commit - 2020.6.26">
       <created>1593162087971</created>
@@ -424,11 +447,18 @@
       <option name="project" value="LOCAL" />
       <updated>1593575941568</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="my commit - 2020.6.26">
+      <created>1593619885710</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1593619885710</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="222068000" />
+    <option name="totallyTimeSpent" value="305366000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -441,7 +471,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23809524" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26243386" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -477,11 +507,75 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="79" />
+      <option name="time" value="107" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -703,26 +797,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/11111.js" />
     <entry file="file://$PROJECT_DIR$/aaaaaaa.js" />
-    <entry file="file://$PROJECT_DIR$/111111111.js">
+    <entry file="file://$PROJECT_DIR$/111111111.js" />
+    <entry file="file://$PROJECT_DIR$/1111111.js" />
+    <entry file="file://$PROJECT_DIR$/aaaaaaaaa.js" />
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="259" column="145" lean-forward="true" selection-start-line="259" selection-start-column="145" selection-end-line="259" selection-end-column="145" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/1111111.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="197">
-          <caret line="936" column="20" lean-forward="true" selection-start-line="936" selection-start-column="20" selection-end-line="936" selection-end-column="20" />
-          <folding />
+        <state relative-caret-position="235">
+          <caret line="859" column="0" lean-forward="false" selection-start-line="859" selection-start-column="0" selection-end-line="859" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="329">
-          <caret line="53" column="18" lean-forward="true" selection-start-line="53" selection-start-column="18" selection-end-line="53" selection-end-column="18" />
+        <state relative-caret-position="486">
+          <caret line="249" column="25" lean-forward="true" selection-start-line="249" selection-start-column="25" selection-end-line="249" selection-end-column="25" />
           <folding />
         </state>
       </provider>
