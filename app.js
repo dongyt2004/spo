@@ -20,7 +20,7 @@ app.post("/", function (req, response) {
     }
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
+        url: "http://ltp.ruoben.com:8008/ltp",  // "http://ltp-svc:12345/ltp"
         form: {
             s: text
         },
@@ -97,9 +97,13 @@ function dedup(array) {
     for(var i=0; i<triple_array.length; i++) {
         for(var j=i+1; j<triple_array.length; j++) {
             if (triple_array[i].indexOf(triple_array[j]) >= 0) {
-                to_del_index.push(j);
+                if (array[j].s.length === 0 || (typeof array[j].o) === 'string' && array[j].o.length === 0) {
+                    to_del_index.push(j);
+                }
             } else if (triple_array[j].indexOf(triple_array[i]) >= 0) {
-                to_del_index.push(i);
+                if (array[i].s.length === 0 || (typeof array[i].o) === 'string' && array[i].o.length === 0) {
+                    to_del_index.push(i);
+                }
             }
         }
     }
@@ -305,19 +309,19 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
     var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word_id + "']");
     for(var child_word_idx in child_words) {
         var child_word = child_words[child_word_idx].$;
-        if (child_word.relate === 'ATT' || child_word.relate === 'SBV' || child_word.relate === 'COO' || child_word.relate === 'ADV' || child_word.relate === 'VOB') {
+        if (child_word.relate === 'ATT' || child_word.relate === 'SBV' || child_word.relate === 'COO' || child_word.relate === 'ADV' || child_word.relate === 'VOB' || child_word.pos === 'u') {
             var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(var grandchild_word_idx in grandchild_words) {
                 var grandchild_word = grandchild_words[grandchild_word_idx].$;
-                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'SBV' || grandchild_word.relate === 'COO' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB') {
+                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'SBV' || grandchild_word.relate === 'COO' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB' || grandchild_word.pos === 'u') {
                     var great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + grandchild_word.id + "']");
                     for(var great_grandchild_word_idx in great_grandchild_words) {
                         var great_grandchild_word = great_grandchild_words[great_grandchild_word_idx].$;
-                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'SBV' || great_grandchild_word.relate === 'COO' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB') {
+                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'SBV' || great_grandchild_word.relate === 'COO' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB' || great_grandchild_word.pos === 'u') {
                             var great_great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + great_grandchild_word.id + "']");
                             for(var great_great_grandchild_word_idx in great_great_grandchild_words) {
                                 var great_great_grandchild_word = great_great_grandchild_words[great_great_grandchild_word_idx].$;
-                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'SBV' || great_great_grandchild_word.relate === 'COO' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB') {
+                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'SBV' || great_great_grandchild_word.relate === 'COO' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB' || great_great_grandchild_word.pos === 'u') {
                                     atts.push(great_great_grandchild_word);
                                 }
                             }
@@ -476,13 +480,21 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             if (advs[i].cont.indexOf('(') === 0) {
                 adv += advs[i].cont;
             } else {
-                adv += "(" + advs[i].cont + ")";
+                if (advs[i].cont.indexOf('[') === 0) {
+                    adv += "[(" + advs[i].cont.substr(1, advs[i].cont.length - 2) + ")]";
+                } else {
+                    adv += "(" + advs[i].cont + ")";
+                }
             }
         } else if (advs[i].pos === 'nl' || advs[i].pos === 'ns') {  // 地点
             if (advs[i].cont.indexOf('[') === 0) {
                 adv += advs[i].cont;
             } else {
-                adv += "[" + advs[i].cont + "]";
+                if (advs[i].cont.indexOf('(') === 0) {
+                    adv += "([" + advs[i].cont.substr(1, advs[i].cont.length - 2) + "])";
+                } else {
+                    adv += "[" + advs[i].cont + "]";
+                }
             }
         } else if (advs[i].pos === 'm') {  // 数量词如果代表时间地点则合并
             if (i+1 < advs.length) {
@@ -602,7 +614,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             cmp += cmps[i].cont;  // 其他
         }
     }
-    cmp = cmp.replace(/\)\(/g, '').replace(/\]\[/g, '');
+    cmp = cmp.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/\)\(/g, '');
     // 把word本身加的()或[]去掉
     for(i = 0; i < cmps.length; i++) {
         if (cmps[i].cont.indexOf('(') === 0 && cmps[i].cont.lastIndexOf(')') === cmps[i].cont.length - 1 || cmps[i].cont.indexOf('[') === 0 && cmps[i].cont.lastIndexOf(']') === cmps[i].cont.length - 1) {
