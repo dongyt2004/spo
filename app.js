@@ -71,8 +71,8 @@ function parse(json) {
         array.push(instance);
     }
     discard_id(array);
-    console.log("三元组=" + JSON.stringify(array));  //////////////////
     array = dedup(array);
+    console.log("三元组=" + JSON.stringify(array));  //////////////////
     return array;
 }
 
