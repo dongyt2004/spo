@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const xml2js = require("xml2js");
 const xpath = require("xml2js-xpath");
 const _ = require('lodash');
-const Levenshtein = require('Levenshtein');
+const Levenshtein = require('levenshtein');
 
 /** ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- **/
 var app = express();
