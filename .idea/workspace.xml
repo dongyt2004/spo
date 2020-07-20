@@ -20,8 +20,8 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="478">
-              <caret line="222" column="29" lean-forward="true" selection-start-line="222" selection-start-column="29" selection-end-line="222" selection-end-column="29" />
+            <state relative-caret-position="514">
+              <caret line="506" column="13" lean-forward="true" selection-start-line="506" selection-start-column="13" selection-end-line="506" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -282,7 +282,7 @@
       <workItem from="1595217966840" duration="107000" />
       <workItem from="1595220424281" duration="622000" />
       <workItem from="1595226603777" duration="725000" />
-      <workItem from="1595257157619" duration="1813000" />
+      <workItem from="1595257157619" duration="1905000" />
     </task>
     <task id="LOCAL-00001" summary="my commit - 2020.6.26">
       <created>1593162087971</created>
@@ -550,11 +550,18 @@
       <option name="project" value="LOCAL" />
       <updated>1595226696952</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="my commit - 2020.7.20">
+      <created>1595261495759</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1595261495759</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="358041000" />
+    <option name="totallyTimeSpent" value="358133000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -925,8 +932,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="478">
-          <caret line="222" column="29" lean-forward="true" selection-start-line="222" selection-start-column="29" selection-end-line="222" selection-end-column="29" />
+        <state relative-caret-position="514">
+          <caret line="506" column="13" lean-forward="true" selection-start-line="506" selection-start-column="13" selection-end-line="506" selection-end-column="13" />
           <folding />
         </state>
       </provider>

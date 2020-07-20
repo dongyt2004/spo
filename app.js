@@ -503,7 +503,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             } else if (advs[i].cont.indexOf('[') === 0) {
                 adv += "[<" + advs[i].cont.substr(1, advs[i].cont.length - 2) + ">]";
             } else {
-                adv += "[" + advs[i].cont + "]";
+                adv += "<" + advs[i].cont + ">";
             }
         } else if (advs[i].pos === 'm') {  // 数量词如果代表时间地点则合并
             if (i+1 < advs.length) {
