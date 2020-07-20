@@ -213,7 +213,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     }
     /*
     找谓语 *********************************************************************************************************************************************************
-    ()：时间（状语或补语）  []：地点（状语或补语）  【】：谓语中心语
+    ()：时间（状语或补语）  []：地点（状语或补语）  <>：方位   【】：谓语中心语
     */
     triples[key]["p"] = parse_predicate(json, para_id, sent_id, word, words);
     /*
@@ -496,6 +496,14 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                 } else {
                     adv += "[" + advs[i].cont + "]";
                 }
+            }
+        } else if (advs[i].pos === 'nd') {  // 方位
+            if (advs[i].cont.indexOf('(') === 0) {
+                adv += "(<" + advs[i].cont.substr(1, advs[i].cont.length - 2) + ">)";
+            } else if (advs[i].cont.indexOf('[') === 0) {
+                adv += "[<" + advs[i].cont.substr(1, advs[i].cont.length - 2) + ">]";
+            } else {
+                adv += "[" + advs[i].cont + "]";
             }
         } else if (advs[i].pos === 'm') {  // 数量词如果代表时间地点则合并
             if (i+1 < advs.length) {
