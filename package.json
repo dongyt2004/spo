@@ -29,6 +29,7 @@
     "body-parser": "1.19.0",
     "xml2js": "0.4.23",
     "xml2js-xpath": "0.11.0",
-    "lodash": "4.17.15"
+    "lodash": "4.17.15",
+    "levenshtein": "1.0.5"
   }
 }
