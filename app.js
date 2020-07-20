@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const xml2js = require("xml2js");
 const xpath = require("xml2js-xpath");
 const _ = require('lodash');
+const Levenshtein = require('Levenshtein');
 
 /** ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- **/
 var app = express();
@@ -96,6 +97,7 @@ function dedup(array) {
     var to_del_index = [];
     for(var i=0; i<triple_array.length; i++) {
         for(var j=i+1; j<triple_array.length; j++) {
+            var ratio = 1 - new Levenshtein(triple_array[i], triple_array[j]).distance / Math.max(triple_array[i].length, triple_array[j].length);
             if (triple_array[i].indexOf(triple_array[j]) >= 0) {
                 if (array[j].s.length === 0 || (typeof array[j].o) === 'string' && array[j].o.length === 0) {
                     to_del_index.push(j);
@@ -103,6 +105,12 @@ function dedup(array) {
             } else if (triple_array[j].indexOf(triple_array[i]) >= 0) {
                 if (array[i].s.length === 0 || (typeof array[i].o) === 'string' && array[i].o.length === 0) {
                     to_del_index.push(i);
+                }
+            } else if (ratio > 0.6) {
+                if (triple_array[i].length < triple_array[j].length) {
+                    to_del_index.push(i);
+                } else {
+                    to_del_index.push(j);
                 }
             }
         }
@@ -162,7 +170,8 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         if (child_word.$.relate === 'SBV') {  // 主语中心语
             subject_found = true;
             if (child_word.$.pos === "q") {  // 主语中心语是量词
-                triples[key]["s"] = parse_att(json, para_id, sent_id, child_word.$.id, words);  // 带定语的主语
+                var subject = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
+                triples[key]["s"] = subject.replace(/}{/g, "");  // 带定语的主语
             } else {
                 if (child_word.$.pos === 'm') {
                     triples[key]["s"] = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";  // 得到主语中心语的定语
@@ -189,7 +198,8 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
             if (dbl_child_word.relate === 'DBL') {  // 兼语，因为作二级的主语，信息量小，所以加定语
                 subject_found = true;
                 if (dbl_child_word.pos === "q") {  // 主语中心语是量词
-                    triples[key]["s"] = parse_att(json, para_id, sent_id, dbl_child_word.id, words);  // 带定语的主语
+                    var subject = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
+                    triples[key]["s"] = subject.replace(/}{/g, "");  // 带定语的主语
                 } else {
                     if (dbl_child_word.pos === 'm') {
                         triples[key]["s"] = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "{" + dbl_child_word.cont + "}";  // 得到兼语的定语
@@ -270,7 +280,8 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
                     }
                 }
             } else if (child_word.$.pos === "q") {  // 宾语中心语是量词
-                vob = parse_att(json, para_id, sent_id, child_word.$.id, words);  // 带定语的宾语
+                var vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
+                vob = vob.replace(/}{/g, ""); // 带定语的宾语
             } else {
                 if (child_word.$.pos === "m") {
                     vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";  // 带定语的宾语
@@ -304,24 +315,24 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
 }
 
 // 解析定语
-function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主语中心语或宾语中心语
+function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主语中心语或宾语中心语id
     var atts = [];
     var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word_id + "']");
     for(var child_word_idx in child_words) {
         var child_word = child_words[child_word_idx].$;
-        if (child_word.relate === 'ATT' || child_word.relate === 'SBV' || child_word.relate === 'COO' || child_word.relate === 'ADV' || child_word.relate === 'VOB' || child_word.pos === 'u') {
+        if (child_word.relate === 'ATT' || child_word.relate === 'SBV' || child_word.relate === 'COO' || child_word.relate === 'ADV' || child_word.relate === 'VOB' || child_word.relate === 'RAD' || child_word.relate === 'LAD') {
             var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(var grandchild_word_idx in grandchild_words) {
                 var grandchild_word = grandchild_words[grandchild_word_idx].$;
-                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'SBV' || grandchild_word.relate === 'COO' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB' || grandchild_word.pos === 'u') {
+                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'SBV' || grandchild_word.relate === 'COO' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB' || grandchild_word.relate === 'RAD' || grandchild_word.relate === 'LAD') {
                     var great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + grandchild_word.id + "']");
                     for(var great_grandchild_word_idx in great_grandchild_words) {
                         var great_grandchild_word = great_grandchild_words[great_grandchild_word_idx].$;
-                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'SBV' || great_grandchild_word.relate === 'COO' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB' || great_grandchild_word.pos === 'u') {
+                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'SBV' || great_grandchild_word.relate === 'COO' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB' || great_grandchild_word.relate === 'RAD' || great_grandchild_word.relate === 'LAD') {
                             var great_great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + great_grandchild_word.id + "']");
                             for(var great_great_grandchild_word_idx in great_great_grandchild_words) {
                                 var great_great_grandchild_word = great_great_grandchild_words[great_great_grandchild_word_idx].$;
-                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'SBV' || great_great_grandchild_word.relate === 'COO' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB' || great_great_grandchild_word.pos === 'u') {
+                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'SBV' || great_great_grandchild_word.relate === 'COO' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB' || great_great_grandchild_word.relate === 'RAD' || great_great_grandchild_word.relate === 'LAD') {
                                     atts.push(great_great_grandchild_word);
                                 }
                             }
@@ -334,9 +345,9 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
             atts.push(child_word);
         }
     }
-    // 去掉标点
+    // 去掉标点和在中心语后面的词
     _.remove(atts, function(word) {
-        return word.pos === "wp";
+        return word.pos === "wp" || parseInt(word.id) > parseInt(word_id);
     });
     atts = _.sortBy(_.uniqBy(atts, 'id'), function(item) {
         return parseInt(item.id);
@@ -351,22 +362,12 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
             att += "《" + atts[i].cont + "》";
         } else if (atts[i].pos === 'nl' || atts[i].pos === 'ns') {
             att += "[" + atts[i].cont + "]";
-        } else if (atts[i].pos === 'm') {
-            if (i+1 < atts.length) {
-                if (atts[i+1].pos === 'q') {
-                    att += "{" + atts[i].cont + atts[i+1].cont + "}";
-                    i++;
-                } else {
-                    att += "{" + atts[i].cont + "}";
-                }
-            } else {
-                var w = words[parseInt(atts[i].id) + 1];
-                if (w.$.pos === 'q') {
-                    att += "{" + atts[i].cont + w.$.cont + "}";
-                }
-            }
+        } else if (atts[i].pos === 'm' || atts[i].pos === 'q') {
+            att += "{" + atts[i].cont + "}";
         } else if (atts[i].pos === 'a' || atts[i].pos === 'b') {  // 纯形容词 或 名词性修饰语
             att += "(" + atts[i].cont + ")";
+        } else if (atts[i].pos === 'ws') {
+            att += atts[i].cont + ' ';
         } else if (atts[i].pos === 'ws') {
             att += atts[i].cont + ' ';
         } else {
@@ -415,15 +416,15 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(var grandchild_word_idx in grandchild_words) {
                 var grandchild_word = grandchild_words[grandchild_word_idx].$;
-                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'POB' || grandchild_word.relate === 'ADV') {
+                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'POB' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB') {
                     var great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + grandchild_word.id + "']");
                     for(var great_grandchild_word_idx in great_grandchild_words) {
                         var great_grandchild_word = great_grandchild_words[great_grandchild_word_idx].$;
-                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'POB' || great_grandchild_word.relate === 'ADV') {
+                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'POB' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB') {
                             var great_great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + great_grandchild_word.id + "']");
                             for(var great_great_grandchild_word_idx in great_great_grandchild_words) {
                                 var great_great_grandchild_word = great_great_grandchild_words[great_great_grandchild_word_idx].$;
-                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'POB' || great_great_grandchild_word.relate === 'ADV') {
+                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'POB' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB') {
                                     advs.push(great_great_grandchild_word);
                                 }
                             }
@@ -438,15 +439,15 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(grandchild_word_idx in grandchild_words) {
                 grandchild_word = grandchild_words[grandchild_word_idx].$;
-                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'POB' || grandchild_word.relate === 'ADV') {
+                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'POB' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB') {
                     great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + grandchild_word.id + "']");
                     for(great_grandchild_word_idx in great_grandchild_words) {
                         great_grandchild_word = great_grandchild_words[great_grandchild_word_idx].$;
-                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'POB' || great_grandchild_word.relate === 'ADV') {
+                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'POB' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB') {
                             great_great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + great_grandchild_word.id + "']");
                             for(great_great_grandchild_word_idx in great_great_grandchild_words) {
                                 great_great_grandchild_word = great_great_grandchild_words[great_great_grandchild_word_idx].$;
-                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'POB' || great_great_grandchild_word.relate === 'ADV') {
+                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'POB' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB') {
                                     cmps.push(great_great_grandchild_word);
                                 }
                             }
@@ -498,7 +499,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             }
         } else if (advs[i].pos === 'm') {  // 数量词如果代表时间地点则合并
             if (i+1 < advs.length) {
-                if (advs[i+1].pos === 'q') {
+                if (advs[i+1].pos === 'm' || advs[i+1].pos === 'q') {
                     if (advs[i].cont.indexOf('(') === 0 && advs[i+1].cont.indexOf('(') < 0) {
                         adv += advs[i].cont + "(" + advs[i+1].cont + ")";
                     } else if (advs[i].cont.indexOf('(') < 0 && advs[i+1].cont.indexOf('(') === 0) {
@@ -520,7 +521,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                 }
             } else {
                  w = words[parseInt(advs[i].id) + 1];
-                if (w.$.pos === 'q') {
+                if (w.$.pos === 'm' || w.$.pos === 'q') {
                     if (advs[i].cont.indexOf('(') === 0 && w.$.cont.indexOf('(') < 0) {
                         adv += advs[i].cont + "(" + w.$.cont + ")";
                     } else if (advs[i].cont.indexOf('(') < 0 && w.$.cont.indexOf('(') === 0) {
@@ -568,7 +569,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             }
         } else if (cmps[i].pos === 'm') {  // 数量词如果代表时间地点则合并
             if (i+1 < cmps.length) {
-                if (cmps[i+1].pos === 'q') {
+                if (cmps[i+1].pos === 'm' || cmps[i+1].pos === 'q') {
                     if (cmps[i].cont.indexOf('(') === 0 && cmps[i+1].cont.indexOf('(') < 0) {
                         cmp += cmps[i].cont + "(" + cmps[i+1].cont + ")";
                     } else if (cmps[i].cont.indexOf('(') < 0 && cmps[i+1].cont.indexOf('(') === 0) {
@@ -590,7 +591,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                 }
             } else {
                 var w = words[parseInt(cmps[i].id) + 1];
-                if (w.$.pos === 'q') {
+                if (w.$.pos === 'm' || w.$.pos === 'q') {
                     if (cmps[i].cont.indexOf('(') === 0 && w.$.cont.indexOf('(') < 0) {
                         cmp += cmps[i].cont + "(" + w.$.cont + ")";
                     } else if (cmps[i].cont.indexOf('(') < 0 && w.$.cont.indexOf('(') === 0) {
