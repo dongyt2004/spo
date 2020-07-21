@@ -142,7 +142,7 @@ function stringify(spo_object) {
             }
         }
     }
-    return s.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/\(/g, "").replace(/\)/g, "");
+    return s.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/~/g, "").replace(/«/g, "").replace(/»/g, "");
 }
 
 function fix(num, length) {
@@ -159,7 +159,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     triples[key] = {};
     /*
     找主语 ********************************************************************************************************************************************************************************************
-    []：地点  <>：方位  ()：修饰语  {}：数（量）词  《》：机构  ``：人名  【】：主语中心语
+    []：地点   <>：地点的方向  ()：修饰语   {}：数（量）词  《》：机构  ``：人名  【】：主语中心语   ~~：其他
     */
     var subject_found = false;
     triples[key]["s"] = '';
@@ -169,15 +169,11 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         var child_word = child_words[child_word_idx];
         if (child_word.$.relate === 'SBV') {  // 主语中心语
             subject_found = true;
-            if (child_word.$.pos === "q") {  // 主语中心语是量词
+            if (child_word.$.pos === 'm' || child_word.$.pos === "q") {  // 主语中心语是数词或量词
                 var subject = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
                 triples[key]["s"] = subject.replace(/}{/g, "");  // 带定语的主语
             } else {
-                if (child_word.$.pos === 'm') {
-                    triples[key]["s"] = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";  // 得到主语中心语的定语
-                } else {
-                    triples[key]["s"] = parse_att(json, para_id, sent_id, child_word.$.id, words) + "【" + child_word.$.cont + "】";  // 得到主语中心语的定语
-                }
+                triples[key]["s"] = parse_att(json, para_id, sent_id, child_word.$.id, words) + "【" + child_word.$.cont + "】";  // 得到主语中心语的定语
             }
             break;
         }
@@ -197,15 +193,11 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
             var dbl_child_word = dbl_child_words[dbl_child_word_idx].$;
             if (dbl_child_word.relate === 'DBL') {  // 兼语，因为作二级的主语，信息量小，所以加定语
                 subject_found = true;
-                if (dbl_child_word.pos === "q") {  // 主语中心语是量词
-                    var subject = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
+                if (dbl_child_word.pos === 'm' || dbl_child_word.pos === "q") {  // 主语中心语是数词或量词
+                    var subject = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "{" + dbl_child_word.cont + "}";
                     triples[key]["s"] = subject.replace(/}{/g, "");  // 带定语的主语
                 } else {
-                    if (dbl_child_word.pos === 'm') {
-                        triples[key]["s"] = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "{" + dbl_child_word.cont + "}";  // 得到兼语的定语
-                    } else {
-                        triples[key]["s"] = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "【" + dbl_child_word.cont + "】";  // 得到兼语的定语
-                    }
+                    triples[key]["s"] = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "【" + dbl_child_word.cont + "】";  // 得到兼语的定语
                 }
                 break;
             }
@@ -213,12 +205,12 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     }
     /*
     找谓语 *********************************************************************************************************************************************************
-    ()：时间（状语或补语）  []：地点（状语或补语）  <>：方位   【】：谓语中心语
+    ()：时间（状语或补语）   «»：时间的方向   []：地点（状语或补语）  <>：地点的方向   【】：谓语中心语   ~~：其他
     */
     triples[key]["p"] = parse_predicate(json, para_id, sent_id, word, words);
     /*
     找宾语 ********************************************************************************************************************************************************************************************
-    []：地点  <>：方位  ()：修饰语  {}：数（量）词  《》：机构  ``：人名  【】：宾语中心语
+    []：地点  <>：地点的方向  ()：修饰语  {}：数（量）词  《》：机构  ``：人名  【】：宾语中心语   ~~：其他
     */
     var object_found = false;
     triples[key]["o"] = '';
@@ -237,11 +229,11 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
                         a1 += "{" + w.cont + words[i+1].$.cont + "}";
                     } else if (w.pos === 'm' || w.pos === 'q') {
                         a1 += "{" + w.cont + "}";
-                    } else {
-                        a1 += w.cont;
+                    } else {  // 其他
+                        a1 += "~" + w.cont + "~";
                     }
                 }
-                a1 = a1.replace(/}{/g, "");
+                a1 = a1.replace(/}{/g, "").replace(/~~/g, "");
                 break;
             }
         }
@@ -279,22 +271,18 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
                         }
                     }
                 }
-            } else if (child_word.$.pos === "q") {  // 宾语中心语是量词
+            } else if (child_word.$.pos === "m" || child_word.$.pos === "q") {  // 宾语中心语是数词或量词
                 var vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
                 vob = vob.replace(/}{/g, ""); // 带定语的宾语
             } else {
-                if (child_word.$.pos === "m") {
-                    vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";  // 带定语的宾语
-                } else {
-                    vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "【" + child_word.$.cont + "】";  // 带定语的宾语
-                }
+                vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "【" + child_word.$.cont + "】";  // 带定语的宾语
             }
             break;
         }
     }
     if ((typeof vob) === 'string') {
-        var s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "");
-        var s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/【/g, "").replace(/】/g, "");
+        var s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+        var s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/【/g, "").replace(/】/g, "").replace(/~/g, "");
         if (s1.length >= s2.length) {
             triples[key]["o"] = vob;
         } else {
@@ -355,7 +343,7 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
     var att = "";
     for(var i = 0; i < atts.length; i++) {
         if (atts[i].pos === 'nd') {
-            att += "<" + atts[i].cont + ">";
+            att += "<" + atts[i].cont + ">";  // 地点的方位方向
         } else if (atts[i].pos === 'nh') {
             att += "`" + atts[i].cont + "`";
         } else if (atts[i].pos === 'ni') {
@@ -368,13 +356,11 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
             att += "(" + atts[i].cont + ")";
         } else if (atts[i].pos === 'ws') {
             att += atts[i].cont + ' ';
-        } else if (atts[i].pos === 'ws') {
-            att += atts[i].cont + ' ';
-        } else {
-            att += atts[i].cont;
+        } else {  // 其他
+            att += "~" + atts[i].cont + "~";
         }
     }
-    att = att.replace(/\]\[/g, '').replace(/></g, '').replace(/}{/g, '').replace(/\)\(/g, '');
+    att = att.replace(/\]\[/g, '').replace(/></g, '').replace(/}{/g, '').replace(/\)\(/g, '').replace(/~~/g, '');
     return att;
 }
 
@@ -497,15 +483,19 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                     adv += "[" + advs[i].cont + "]";
                 }
             }
-        } else if (advs[i].pos === 'nd') {  // 方位
+        } else if (advs[i].pos === 'nd') {  // 方向
             if (advs[i].cont.indexOf('(') === 0) {
-                adv += "(<" + advs[i].cont.substr(1, advs[i].cont.length - 2) + ">)";
+                adv += "(«" + advs[i].cont.substr(1, advs[i].cont.length - 2) + "»)";  // 时间的方向
             } else if (advs[i].cont.indexOf('[') === 0) {
-                adv += "[<" + advs[i].cont.substr(1, advs[i].cont.length - 2) + ">]";
+                adv += "[<" + advs[i].cont.substr(1, advs[i].cont.length - 2) + ">]";  // 地点的方向
             } else {
-                adv += "<" + advs[i].cont + ">";
+                if (i>0 && (advs[i-1].pos === 'm' || advs[i-1].pos === 'q')) {
+                    adv += "«" + advs[i].cont + "»";  // 时间的方向
+                } else {
+                    adv += "<" + advs[i].cont + ">";  // 地点的方向
+                }
             }
-        } else if (advs[i].pos === 'm') {  // 数量词如果代表时间地点则合并
+        } else if (advs[i].pos === 'm') {  // 数量词如果代表时间，其次地点则合并
             if (i+1 < advs.length) {
                 if (advs[i+1].pos === 'm' || advs[i+1].pos === 'q') {
                     if (advs[i].cont.indexOf('(') === 0 && advs[i+1].cont.indexOf('(') < 0) {
@@ -550,11 +540,15 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                 }
             }
         } else {
-            adv += advs[i].cont;  // 其他
+            if (advs[i].cont.indexOf("(") === 0 || advs[i].cont.indexOf("[") === 0 || advs[i].cont.indexOf("<") === 0) {
+                adv += advs[i].cont;  // 其他
+            } else {
+                adv += "~" + advs[i].cont + "~";  // 其他
+            }
         }
     }
-    adv = adv.replace(/\)\(/g, '').replace(/\]\[/g, '');
-    // 把word本身加的()或[]去掉
+    adv = adv.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/~~/g, "").replace(/></g, "").replace(/»«/g, "").replace(/\)\(/g, '');
+    // 把每个word本身加的()或[]去掉
     for(i = 0; i < advs.length; i++) {
         if (advs[i].cont.indexOf('(') === 0 && advs[i].cont.lastIndexOf(')') === advs[i].cont.length - 1 || advs[i].cont.indexOf('[') === 0 && advs[i].cont.lastIndexOf(']') === advs[i].cont.length - 1) {
             advs[i].cont = advs[i].cont.substr(1, advs[i].cont.length - 2);
@@ -567,15 +561,35 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             if (cmps[i].cont.indexOf('(') === 0) {
                 cmp += cmps[i].cont;
             } else {
-                cmp += "(" + cmps[i].cont + ")";
+                if (cmps[i].cont.indexOf('[') === 0) {
+                    cmp += "[(" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + ")]";
+                } else {
+                    cmp += "(" + cmps[i].cont + ")";
+                }
             }
         } else if (cmps[i].pos === 'nl' || cmps[i].pos === 'ns') {  // 地点
             if (cmps[i].cont.indexOf('[') === 0) {
                 cmp += cmps[i].cont;
             } else {
-                cmp += "[" + cmps[i].cont + "]";
+                if (cmps[i].cont.indexOf('(') === 0) {
+                    cmp += "([" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + "])";
+                } else {
+                    cmp += "[" + cmps[i].cont + "]";
+                }
             }
-        } else if (cmps[i].pos === 'm') {  // 数量词如果代表时间地点则合并
+        } else if (cmps[i].pos === 'nd') {  // 方向
+            if (cmps[i].cont.indexOf('(') === 0) {
+                cmp += "(«" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + "»)";  // 时间的方向
+            } else if (cmps[i].cont.indexOf('[') === 0) {
+                cmp += "[<" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + ">]";  // 地点的方向
+            } else {
+                if (i>0 && (cmps[i-1].pos === 'm' || cmps[i-1].pos === 'q')) {
+                    cmp += "«" + cmps[i].cont + "»";  // 时间的方向
+                } else {
+                    cmp += "<" + cmps[i].cont + ">";  // 地点的方向
+                }
+            }
+        } else if (cmps[i].pos === 'm') {  // 数量词如果代表时间，其次地点则合并
             if (i+1 < cmps.length) {
                 if (cmps[i+1].pos === 'm' || cmps[i+1].pos === 'q') {
                     if (cmps[i].cont.indexOf('(') === 0 && cmps[i+1].cont.indexOf('(') < 0) {
@@ -620,11 +634,15 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                 }
             }
         } else {
-            cmp += cmps[i].cont;  // 其他
+            if (cmps[i].cont.indexOf("(") === 0 || cmps[i].cont.indexOf("[") === 0 || cmps[i].cont.indexOf("<") === 0) {
+                cmp += cmps[i].cont;  // 其他
+            } else {
+                cmp += "~" + cmps[i].cont + "~";  // 其他
+            }
         }
     }
-    cmp = cmp.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/\)\(/g, '');
-    // 把word本身加的()或[]去掉
+    cmp = cmp.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/~~/g, "").replace(/></g, "").replace(/»«/g, "").replace(/\)\(/g, '');
+    // 把每个word本身加的()或[]去掉
     for(i = 0; i < cmps.length; i++) {
         if (cmps[i].cont.indexOf('(') === 0 && cmps[i].cont.lastIndexOf(')') === cmps[i].cont.length - 1 || cmps[i].cont.indexOf('[') === 0 && cmps[i].cont.lastIndexOf(']') === cmps[i].cont.length - 1) {
             cmps[i].cont = cmps[i].cont.substr(1, cmps[i].cont.length - 2);
