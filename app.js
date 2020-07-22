@@ -225,10 +225,15 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     if (a0 !== '') {
         s2 = a0.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
     }
-    if (s1.length >= s2.length) {
-        triples[key]["s"] = sbv;
+    var ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
+    if (ratio > 0.6) {
+        if (s1.length >= s2.length) {  // 长的优先
+            triples[key]["s"] = sbv;
+        } else {
+            triples[key]["s"] = a0;
+        }
     } else {
-        triples[key]["s"] = a0;
+        triples[key]["s"] = sbv;  // 主谓结构优先
     }
     // 按COO并列关系找主语
     if (!subject_found && word.$.relate === 'COO') {
@@ -323,7 +328,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         child_word = child_words[child_word_idx];
         if (child_word.$.relate === 'VOB') {  // 宾语中心语
             object_found = true;
-            if (child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p' && child_word.$.pos !== 'nd' && child_word.$.pos !== 'nt') {  // 二级又是三元组
+            if (child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p' && child_word.$.pos.indexOf('n') < 0) {  // 二级又是三元组
                 var triple = parse_triple(json, flat_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
                 if (JSON.stringify(triple) !== "{}") {
                     vob = [];
@@ -355,10 +360,15 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         if (a1 !== '') {
             s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
         }
-        if (s1.length >= s2.length) {
-            triples[key]["o"] = vob;
+        ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
+        if (ratio > 0.6) {
+            if (s1.length >= s2.length) {  // 长的优先
+                triples[key]["o"] = vob;
+            } else {
+                triples[key]["o"] = a1;
+            }
         } else {
-            triples[key]["o"] = a1;
+            triples[key]["o"] = vob;  // 动宾结构优先
         }
     } else {
         triples[key]["o"] = vob;
