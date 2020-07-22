@@ -20,7 +20,7 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="271">
+            <state relative-caret-position="396">
               <caret line="22" column="18" lean-forward="true" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="18" />
               <folding />
             </state>
@@ -48,10 +48,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>including the Indian Express ,</find>
-      <find>---</find>
-      <find>tokens</find>
-      <find>if (word.arg)</find>
       <find>word.arg</find>
       <find>replace</find>
       <find>|| child_word.relate === 'SBV'</find>
@@ -61,23 +57,27 @@
       <find>triples[key][&quot;o&quot;]</find>
       <find>nh</find>
       <find>'('</find>
-      <find>advs[i+1]</find>
       <find>&quot;(&quot;</find>
       <find>“</find>
       <find>triples[key][&quot;s1&quot;]</find>
-      <find>ws</find>
       <find>.replace</find>
       <find>array[index]</find>
       <find>_.</find>
       <find>console</find>
       <find>substr</find>
-      <find>Levenshtein</find>
       <find>'nd'</find>
       <find>&lt;</find>
-      <find>adv</find>
       <find>«</find>
+      <find>'nl'</find>
+      <find>ws</find>
+      <find>a1</find>
+      <find>vob</find>
       <find>~</find>
+      <find>advs[i+1]</find>
       <find>advs</find>
+      <find>adv</find>
+      <find>w.$</find>
+      <find>Levenshtein</find>
     </findStrings>
     <replaceStrings>
       <replace>para_id</replace>
@@ -91,12 +91,15 @@
       <replace>a1</replace>
       <replace>vob</replace>
       <replace>'['</replace>
-      <replace>w.$</replace>
       <replace>&quot;[&quot;</replace>
       <replace>triples[key][&quot;s&quot;]</replace>
       <replace>spo_object</replace>
-      <replace>cmp</replace>
+      <replace>a2</replace>
+      <replace>a0</replace>
+      <replace>w.$</replace>
       <replace>cmps</replace>
+      <replace>cmp</replace>
+      <replace>w</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -179,7 +182,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -192,6 +194,7 @@
         </subPane>
       </pane>
       <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -284,7 +287,10 @@
       <workItem from="1595226603777" duration="725000" />
       <workItem from="1595257157619" duration="2078000" />
       <workItem from="1595293800079" duration="57000" />
-      <workItem from="1595297065559" duration="8367000" />
+      <workItem from="1595297065559" duration="8425000" />
+      <workItem from="1595316147816" duration="678000" />
+      <workItem from="1595343446470" duration="737000" />
+      <workItem from="1595384352834" duration="12802000" />
     </task>
     <task id="LOCAL-00001" summary="my commit - 2020.6.26">
       <created>1593162087971</created>
@@ -566,11 +572,25 @@
       <option name="project" value="LOCAL" />
       <updated>1595261584985</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="my commit - 2020.7.20">
+      <created>1595310287143</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1595310287143</updated>
+    </task>
+    <task id="LOCAL-00042" summary="my commit - 2020.7.20">
+      <created>1595402069015</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1595402069015</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="366730000" />
+    <option name="totallyTimeSpent" value="381005000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -604,13 +624,13 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="TypeScript" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.12848867" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15955766" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2931217" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22857143" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -639,7 +659,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="145" />
+      <option name="time" value="149" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -941,7 +961,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="271">
+        <state relative-caret-position="396">
           <caret line="22" column="18" lean-forward="true" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="18" />
           <folding />
         </state>

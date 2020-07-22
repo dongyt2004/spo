@@ -163,20 +163,70 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     */
     var subject_found = false;
     triples[key]["s"] = '';
+    // 按A0找主语
+    var a0 = "";
+    if (word.arg) {
+        for(var arg_idx in word.arg) {
+            var arg = word.arg[arg_idx].$;
+            if (arg.type === 'A0' && parseInt(arg.end) < parseInt(word.$.id)) {  // 动作的施事者，主语
+                subject_found = true;
+                for(var i = parseInt(arg.beg); i <= parseInt(arg.end); i++) {
+                    var w = words[i].$;
+                    if (w.pos === 'ws') {
+                        a0 += w.cont + ' ';
+                    } else if (w.pos === 'm' && i === parseInt(arg.end) && i < words.length - 1 && words[i+1].$.pos === 'q') {
+                        a0 += "{" + w.cont + words[i+1].$.cont + "}";
+                    } else if (w.pos === 'm' || w.pos === 'q') {
+                        a0 += "{" + w.cont + "}";
+                    } else if (w.pos === 'nl' || w.pos === 'ns') {
+                        a0 += "[" + w.cont + "]";
+                    } else if (w.pos === 'nd') {
+                        a0 += "<" + w.cont + ">";
+                    } else if (w.pos === 'nh') {
+                        a0 += "`" + w.cont + "`";
+                    } else if (w.pos === 'ni') {
+                        a0 += "《" + w.cont + "》";
+                    } else if (w.pos === 'a' || w.pos === 'b') {
+                        a0 += "(" + w.cont + ")";
+                    } else {  // 其他
+                        a0 += "~" + w.cont + "~";
+                    }
+                }
+                break;
+            }
+        }
+    }
+    if (a0 !== '') {
+        a0 = a0.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/></g, '').replace(/}{/g, '').replace(/~~/g, '').replace(/》《/g, '').replace(/``/g, '');
+    }
     // 按主谓找，能找到的主语是最短的（有利于实体链接），但信息量小，所以加定语
+    var sbv = "";
     var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word.$.id + "']");
     for(var child_word_idx in child_words) {
         var child_word = child_words[child_word_idx];
         if (child_word.$.relate === 'SBV') {  // 主语中心语
             subject_found = true;
             if (child_word.$.pos === 'm' || child_word.$.pos === "q") {  // 主语中心语是数词或量词
-                var subject = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
-                triples[key]["s"] = subject.replace(/}{/g, "");  // 带定语的主语
+                sbv = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
+                sbv = sbv.replace(/}{/g, "");  // 带定语的主语
             } else {
-                triples[key]["s"] = parse_att(json, para_id, sent_id, child_word.$.id, words) + "【" + child_word.$.cont + "】";  // 得到主语中心语的定语
+                sbv = parse_att(json, para_id, sent_id, child_word.$.id, words) + "【" + child_word.$.cont + "】";  // 得到主语中心语的定语
             }
             break;
         }
+    }
+    var s1 = '';
+    if (sbv !== '') {
+        s1 = sbv.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+    }
+    var s2 = '';
+    if (a0 !== '') {
+        s2 = a0.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+    }
+    if (s1.length >= s2.length) {
+        triples[key]["s"] = sbv;
+    } else {
+        triples[key]["s"] = a0;
     }
     // 按COO并列关系找主语
     if (!subject_found && word.$.relate === 'COO') {
@@ -194,7 +244,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
             if (dbl_child_word.relate === 'DBL') {  // 兼语，因为作二级的主语，信息量小，所以加定语
                 subject_found = true;
                 if (dbl_child_word.pos === 'm' || dbl_child_word.pos === "q") {  // 主语中心语是数词或量词
-                    var subject = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "{" + dbl_child_word.cont + "}";
+                    subject = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "{" + dbl_child_word.cont + "}";
                     triples[key]["s"] = subject.replace(/}{/g, "");  // 带定语的主语
                 } else {
                     triples[key]["s"] = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "【" + dbl_child_word.cont + "】";  // 得到兼语的定语
@@ -205,7 +255,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     }
     /*
     找谓语 *********************************************************************************************************************************************************
-    ()：时间（状语或补语）   «»：时间的方向   []：地点（状语或补语）  <>：地点的方向   【】：谓语中心语   ~~：其他
+    ()：时间（状语或补语）   «»：时间的方向   []：地点（状语或补语）  <>：地点的方向   {}：数（量）词   【】：谓语中心语   ~~：其他
     */
     triples[key]["p"] = parse_predicate(json, para_id, sent_id, word, words);
     /*
@@ -217,40 +267,54 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     // 按A1找宾语
     var a1 = "";
     if (word.arg) {
-        for(var arg_idx in word.arg) {
-            var arg = word.arg[arg_idx].$;
+        for(arg_idx in word.arg) {
+            arg = word.arg[arg_idx].$;
             if (arg.type === 'A1' && parseInt(arg.beg) > parseInt(word.$.id)) {  // 动作的受事者，宾语
                 object_found = true;
-                for(var i = parseInt(arg.beg); i <= parseInt(arg.end); i++) {
-                    var w = words[i].$;
+                for(i = parseInt(arg.beg); i <= parseInt(arg.end); i++) {
+                    w = words[i].$;
                     if (w.pos === 'ws') {
                         a1 += w.cont + ' ';
                     } else if (w.pos === 'm' && i === parseInt(arg.end) && i < words.length - 1 && words[i+1].$.pos === 'q') {
                         a1 += "{" + w.cont + words[i+1].$.cont + "}";
                     } else if (w.pos === 'm' || w.pos === 'q') {
                         a1 += "{" + w.cont + "}";
+                    } else if (w.pos === 'nl' || w.pos === 'ns') {
+                        a1 += "[" + w.cont + "]";
+                    } else if (w.pos === 'nd') {
+                        a1 += "<" + w.cont + ">";
+                    } else if (w.pos === 'nh') {
+                        a1 += "`" + w.cont + "`";
+                    } else if (w.pos === 'ni') {
+                        a1 += "《" + w.cont + "》";
+                    } else if (w.pos === 'a' || w.pos === 'b') {
+                        a1 += "(" + w.cont + ")";
                     } else {  // 其他
                         a1 += "~" + w.cont + "~";
                     }
                 }
-                a1 = a1.replace(/}{/g, "").replace(/~~/g, "");
                 break;
             }
         }
     }
-    var a2 = "";
-    if (word.arg) {
-        for(arg_idx in word.arg) {
-            arg = word.arg[arg_idx].$;
-            if (arg.type === 'A2' && parseInt(arg.beg) > parseInt(word.$.id)) {  // 动作的受事者，宾语
-                for(i = parseInt(arg.beg); i <= parseInt(arg.end); i++) {
-                    a2 += words[i].$.cont;
+    if (a1 !== '') {
+        var a2 = "";
+        if (word.arg) {
+            for(arg_idx in word.arg) {
+                arg = word.arg[arg_idx].$;
+                if (arg.type === 'A2' && parseInt(arg.beg) > parseInt(word.$.id)) {  // 动作的受事者，宾语
+                    for(i = parseInt(arg.beg); i <= parseInt(arg.end); i++) {
+                        a2 += words[i].$.cont;
+                    }
+                    break;
                 }
-                break;
             }
         }
+        if (a2 !== "") {
+            a1 += "【" + a2 + "】";
+        }
+        a1 = a1.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/></g, '').replace(/}{/g, '').replace(/~~/g, '').replace(/》《/g, '').replace(/``/g, '');
     }
-    a1 += (a2 === "") ? "" : "【" + a2 + "】";
     // 按VOB找宾语
     var vob = "";
     for(child_word_idx in child_words) {
@@ -272,7 +336,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
                     }
                 }
             } else if (child_word.$.pos === "m" || child_word.$.pos === "q") {  // 宾语中心语是数词或量词
-                var vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
+                vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
                 vob = vob.replace(/}{/g, ""); // 带定语的宾语
             } else {
                 vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "【" + child_word.$.cont + "】";  // 带定语的宾语
@@ -281,8 +345,14 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         }
     }
     if ((typeof vob) === 'string') {
-        var s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
-        var s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/【/g, "").replace(/】/g, "").replace(/~/g, "");
+        s1 = '';
+        if (vob !== '') {
+            s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+        }
+        s2 = '';
+        if (a1 !== '') {
+            s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+        }
         if (s1.length >= s2.length) {
             triples[key]["o"] = vob;
         } else {
@@ -360,7 +430,7 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
             att += "~" + atts[i].cont + "~";
         }
     }
-    att = att.replace(/\]\[/g, '').replace(/></g, '').replace(/}{/g, '').replace(/\)\(/g, '').replace(/~~/g, '');
+    att = att.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/></g, '').replace(/}{/g, '').replace(/~~/g, '').replace(/》《/g, '').replace(/``/g, '');
     return att;
 }
 
@@ -495,59 +565,55 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                     adv += "<" + advs[i].cont + ">";  // 地点的方向
                 }
             }
-        } else if (advs[i].pos === 'm') {  // 数量词如果代表时间，其次地点则合并
+        } else if (advs[i].pos === 'm') {  // 数量词
             if (i+1 < advs.length) {
                 if (advs[i+1].pos === 'm' || advs[i+1].pos === 'q') {
                     if (advs[i].cont.indexOf('(') === 0 && advs[i+1].cont.indexOf('(') < 0) {
-                        adv += advs[i].cont + "(" + advs[i+1].cont + ")";
+                        adv += "({" + advs[i].cont.substr(1, advs[i].cont.length - 2) + advs[i+1].cont + "})";
                     } else if (advs[i].cont.indexOf('(') < 0 && advs[i+1].cont.indexOf('(') === 0) {
-                        adv += "(" + advs[i].cont + ")" + advs[i+1].cont;
+                        adv += "({" + advs[i].cont + advs[i+1].cont.substr(1, advs[i+1].cont.length - 2) + "})";
                     } else if (advs[i].cont.indexOf('(') === 0 && advs[i+1].cont.indexOf('(') === 0) {
-                        adv += advs[i].cont + advs[i+1].cont;
-                    } else if (advs[i].cont.indexOf('(') < 0 && advs[i+1].cont.indexOf('(') < 0) {
-                        adv += "(" + advs[i].cont + advs[i+1].cont + ")";
+                        adv += "({" + advs[i].cont.substr(1, advs[i].cont.length - 2) + advs[i+1].cont.substr(1, advs[i+1].cont.length - 2) + "})";
                     } else if (advs[i].cont.indexOf('[') === 0 && advs[i+1].cont.indexOf('[') < 0) {
-                        adv += advs[i].cont + "[" + advs[i+1].cont + "]";
+                        adv += "[{" + advs[i].cont.substr(1, advs[i].cont.length - 2) + advs[i+1].cont + "}]";
                     } else if (advs[i].cont.indexOf('[') < 0 && advs[i+1].cont.indexOf('[') === 0) {
-                        adv += "[" + advs[i].cont + "]" + advs[i+1].cont;
+                        adv += "[{" + advs[i].cont + advs[i+1].cont.substr(1, advs[i+1].cont.length - 2) + "}]";
                     } else if (advs[i].cont.indexOf('[') === 0 && advs[i+1].cont.indexOf('[') === 0) {
-                        adv += advs[i].cont + advs[i+1].cont;
-                    } else if (advs[i].cont.indexOf('[') < 0 && advs[i+1].cont.indexOf('[') < 0) {
-                        adv += "[" + advs[i].cont + advs[i+1].cont + "]";
+                        adv += "[{" + advs[i].cont.substr(1, advs[i].cont.length - 2) + advs[i+1].cont.substr(1, advs[i+1].cont.length - 2) + "}]";
+                    } else {
+                        adv += "{" + advs[i].cont + advs[i+1].cont + "}";
                     }
                     i++;
                 }
             } else {
-                 w = words[parseInt(advs[i].id) + 1];
-                if (w.$.pos === 'm' || w.$.pos === 'q') {
-                    if (advs[i].cont.indexOf('(') === 0 && w.$.cont.indexOf('(') < 0) {
-                        adv += advs[i].cont + "(" + w.$.cont + ")";
-                    } else if (advs[i].cont.indexOf('(') < 0 && w.$.cont.indexOf('(') === 0) {
-                        adv += "(" + advs[i].cont + ")" + w.$.cont;
-                    } else if (advs[i].cont.indexOf('(') === 0 && w.$.cont.indexOf('(') === 0) {
-                        adv += advs[i].cont + w.$.cont;
-                    } else if (advs[i].cont.indexOf('(') < 0 && w.$.cont.indexOf('(') < 0) {
-                        adv += "(" + advs[i].cont + w.$.cont + ")";
-                    } else if (advs[i].cont.indexOf('[') === 0 && w.$.cont.indexOf('[') < 0) {
-                        adv += advs[i].cont + "[" + w.$.cont + "]";
-                    } else if (advs[i].cont.indexOf('[') < 0 && w.$.cont.indexOf('[') === 0) {
-                        adv += "[" + advs[i].cont + "]" + w.$.cont;
-                    } else if (advs[i].cont.indexOf('[') === 0 && w.$.cont.indexOf('[') === 0) {
-                        adv += advs[i].cont + w.$.cont;
-                    } else if (advs[i].cont.indexOf('[') < 0 && w.$.cont.indexOf('[') < 0) {
-                        adv += "[" + advs[i].cont + w.$.cont + "]";
+                var w = words[parseInt(advs[i].id) + 1].$;
+                if (w.pos === 'm' || w.pos === 'q') {
+                    if (advs[i].cont.indexOf('(') === 0 && w.cont.indexOf('(') < 0) {
+                        adv += "({" + advs[i].cont.substr(1, advs[i].cont.length - 2) + w.cont + "})";
+                    } else if (advs[i].cont.indexOf('(') < 0 && w.cont.indexOf('(') === 0) {
+                        adv += "({" + advs[i].cont + w.cont.substr(1, w.cont.length - 2) + "})";
+                    } else if (advs[i].cont.indexOf('(') === 0 && w.cont.indexOf('(') === 0) {
+                        adv += "({" + advs[i].cont.substr(1, advs[i].cont.length - 2) + w.cont.substr(1, w.cont.length - 2) + "})";
+                    } else if (advs[i].cont.indexOf('[') === 0 && w.cont.indexOf('[') < 0) {
+                        adv += "[{" + advs[i].cont.substr(1, advs[i].cont.length - 2) + w.cont + "}]";
+                    } else if (advs[i].cont.indexOf('[') < 0 && w.cont.indexOf('[') === 0) {
+                        adv += "[{" + advs[i].cont + w.cont.substr(1, w.cont.length - 2) + "}]";
+                    } else if (advs[i].cont.indexOf('[') === 0 && w.cont.indexOf('[') === 0) {
+                        adv += "[{" + advs[i].cont.substr(1, advs[i].cont.length - 2) + w.cont.substr(1, w.cont.length - 2) + "}]";
+                    } else {
+                        adv += "{" + advs[i].cont + w.cont + "}";
                     }
                 }
             }
         } else {
-            if (advs[i].cont.indexOf("(") === 0 || advs[i].cont.indexOf("[") === 0 || advs[i].cont.indexOf("<") === 0) {
+            if (advs[i].cont.indexOf("(") === 0 || advs[i].cont.indexOf("«") === 0 || advs[i].cont.indexOf("[") === 0 || advs[i].cont.indexOf("<") === 0) {
                 adv += advs[i].cont;  // 其他
             } else {
                 adv += "~" + advs[i].cont + "~";  // 其他
             }
         }
     }
-    adv = adv.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/~~/g, "").replace(/></g, "").replace(/»«/g, "").replace(/\)\(/g, '');
+    adv = adv.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/~~/g, "").replace(/></g, "").replace(/»«/g, "").replace(/}{/g, '').replace(/\)\(/g, '');
     // 把每个word本身加的()或[]去掉
     for(i = 0; i < advs.length; i++) {
         if (advs[i].cont.indexOf('(') === 0 && advs[i].cont.lastIndexOf(')') === advs[i].cont.length - 1 || advs[i].cont.indexOf('[') === 0 && advs[i].cont.lastIndexOf(']') === advs[i].cont.length - 1) {
@@ -589,59 +655,55 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                     cmp += "<" + cmps[i].cont + ">";  // 地点的方向
                 }
             }
-        } else if (cmps[i].pos === 'm') {  // 数量词如果代表时间，其次地点则合并
+        } else if (cmps[i].pos === 'm') {  // 数量词
             if (i+1 < cmps.length) {
                 if (cmps[i+1].pos === 'm' || cmps[i+1].pos === 'q') {
                     if (cmps[i].cont.indexOf('(') === 0 && cmps[i+1].cont.indexOf('(') < 0) {
-                        cmp += cmps[i].cont + "(" + cmps[i+1].cont + ")";
+                        cmp += "({" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + cmps[i+1].cont + "})";
                     } else if (cmps[i].cont.indexOf('(') < 0 && cmps[i+1].cont.indexOf('(') === 0) {
-                        cmp += "(" + cmps[i].cont + ")" + cmps[i+1].cont;
+                        cmp += "({" + cmps[i].cont + cmps[i+1].cont.substr(1, cmps[i+1].cont.length - 2) + "})";
                     } else if (cmps[i].cont.indexOf('(') === 0 && cmps[i+1].cont.indexOf('(') === 0) {
-                        cmp += cmps[i].cont + cmps[i+1].cont;
-                    } else if (cmps[i].cont.indexOf('(') < 0 && cmps[i+1].cont.indexOf('(') < 0) {
-                        cmp += "(" + cmps[i].cont + cmps[i+1].cont + ")";
+                        cmp += "({" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + cmps[i+1].cont.substr(1, cmps[i+1].cont.length - 2) + "})";
                     } else if (cmps[i].cont.indexOf('[') === 0 && cmps[i+1].cont.indexOf('[') < 0) {
-                        cmp += cmps[i].cont + "[" + cmps[i+1].cont + "]";
+                        cmp += "[{" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + cmps[i+1].cont + "}]";
                     } else if (cmps[i].cont.indexOf('[') < 0 && cmps[i+1].cont.indexOf('[') === 0) {
-                        cmp += "[" + cmps[i].cont + "]" + cmps[i+1].cont;
+                        cmp += "[{" + cmps[i].cont + cmps[i+1].cont.substr(1, cmps[i+1].cont.length - 2) + "}]";
                     } else if (cmps[i].cont.indexOf('[') === 0 && cmps[i+1].cont.indexOf('[') === 0) {
-                        cmp += cmps[i].cont + cmps[i+1].cont;
-                    } else if (cmps[i].cont.indexOf('[') < 0 && cmps[i+1].cont.indexOf('[') < 0) {
-                        cmp += "[" + cmps[i].cont + cmps[i+1].cont + "]";
+                        cmp += "[{" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + cmps[i+1].cont.substr(1, cmps[i+1].cont.length - 2) + "}]";
+                    } else {
+                        cmp += "{" + cmps[i].cont + cmps[i+1].cont + "}";
                     }
                     i++;
                 }
             } else {
-                var w = words[parseInt(cmps[i].id) + 1];
-                if (w.$.pos === 'm' || w.$.pos === 'q') {
-                    if (cmps[i].cont.indexOf('(') === 0 && w.$.cont.indexOf('(') < 0) {
-                        cmp += cmps[i].cont + "(" + w.$.cont + ")";
-                    } else if (cmps[i].cont.indexOf('(') < 0 && w.$.cont.indexOf('(') === 0) {
-                        cmp += "(" + cmps[i].cont + ")" + w.$.cont;
-                    } else if (cmps[i].cont.indexOf('(') === 0 && w.$.cont.indexOf('(') === 0) {
-                        cmp += cmps[i].cont + w.$.cont;
-                    } else if (cmps[i].cont.indexOf('(') < 0 && w.$.cont.indexOf('(') < 0) {
-                        cmp += "(" + cmps[i].cont + w.$.cont + ")";
-                    } else if (cmps[i].cont.indexOf('[') === 0 && w.$.cont.indexOf('[') < 0) {
-                        cmp += cmps[i].cont + "[" + w.$.cont + "]";
-                    } else if (cmps[i].cont.indexOf('[') < 0 && w.$.cont.indexOf('[') === 0) {
-                        cmp += "[" + cmps[i].cont + "]" + w.$.cont;
-                    } else if (cmps[i].cont.indexOf('[') === 0 && w.$.cont.indexOf('[') === 0) {
-                        cmp += cmps[i].cont + w.$.cont;
-                    } else if (cmps[i].cont.indexOf('[') < 0 && w.$.cont.indexOf('[') < 0) {
-                        cmp += "[" + cmps[i].cont + w.$.cont + "]";
+                w = words[parseInt(cmps[i].id) + 1].$;
+                if (w.pos === 'm' || w.pos === 'q') {
+                    if (cmps[i].cont.indexOf('(') === 0 && w.cont.indexOf('(') < 0) {
+                        cmp += "({" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + w.cont + "})";
+                    } else if (cmps[i].cont.indexOf('(') < 0 && w.cont.indexOf('(') === 0) {
+                        cmp += "({" + cmps[i].cont + w.cont.substr(1, w.cont.length - 2) + "})";
+                    } else if (cmps[i].cont.indexOf('(') === 0 && w.cont.indexOf('(') === 0) {
+                        cmp += "({" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + w.cont.substr(1, w.cont.length - 2) + "})";
+                    } else if (cmps[i].cont.indexOf('[') === 0 && w.cont.indexOf('[') < 0) {
+                        cmp += "[{" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + w.cont + "}]";
+                    } else if (cmps[i].cont.indexOf('[') < 0 && w.cont.indexOf('[') === 0) {
+                        cmp += "[{" + cmps[i].cont + w.cont.substr(1, w.cont.length - 2) + "}]";
+                    } else if (cmps[i].cont.indexOf('[') === 0 && w.cont.indexOf('[') === 0) {
+                        cmp += "[{" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + w.cont.substr(1, w.cont.length - 2) + "}]";
+                    } else {
+                        cmp += "{" + cmps[i].cont + w.cont + "}";
                     }
                 }
             }
         } else {
-            if (cmps[i].cont.indexOf("(") === 0 || cmps[i].cont.indexOf("[") === 0 || cmps[i].cont.indexOf("<") === 0) {
+            if (cmps[i].cont.indexOf("(") === 0 || cmps[i].cont.indexOf("«") === 0 || cmps[i].cont.indexOf("[") === 0 || cmps[i].cont.indexOf("<") === 0) {
                 cmp += cmps[i].cont;  // 其他
             } else {
                 cmp += "~" + cmps[i].cont + "~";  // 其他
             }
         }
     }
-    cmp = cmp.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/~~/g, "").replace(/></g, "").replace(/»«/g, "").replace(/\)\(/g, '');
+    cmp = cmp.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/~~/g, "").replace(/></g, "").replace(/»«/g, "").replace(/}{/g, '').replace(/\)\(/g, '');
     // 把每个word本身加的()或[]去掉
     for(i = 0; i < cmps.length; i++) {
         if (cmps[i].cont.indexOf('(') === 0 && cmps[i].cont.lastIndexOf(')') === cmps[i].cont.length - 1 || cmps[i].cont.indexOf('[') === 0 && cmps[i].cont.lastIndexOf(']') === cmps[i].cont.length - 1) {
