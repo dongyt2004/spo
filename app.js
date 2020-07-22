@@ -21,7 +21,7 @@ app.post("/", function (req, response) {
     }
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
+        url: "http://ltp.ruoben.com:8008/ltp",  // "http://ltp-svc:12345/ltp"
         form: {
             s: text
         },
@@ -172,7 +172,9 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
                 subject_found = true;
                 for(var i = parseInt(arg.beg); i <= parseInt(arg.end); i++) {
                     var w = words[i].$;
-                    if (w.pos === 'ws') {
+                    if (w.pos === 'u') {
+                        continue;
+                    } else if (w.pos === 'ws') {
                         a0 += w.cont + ' ';
                     } else if (w.pos === 'm' && i === parseInt(arg.end) && i < words.length - 1 && words[i+1].$.pos === 'q') {
                         a0 += "{" + w.cont + words[i+1].$.cont + "}";
