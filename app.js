@@ -217,23 +217,23 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
             break;
         }
     }
-    var s1 = '';
-    if (sbv !== '') {
-        s1 = sbv.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
-    }
-    var s2 = '';
-    if (a0 !== '') {
-        s2 = a0.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
-    }
-    var ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
-    if (ratio > 0.6) {
-        if (s1.length >= s2.length) {  // 长的优先
-            triples[key]["s"] = sbv;
-        } else {
-            triples[key]["s"] = a0;
-        }
+    if (sbv === '' && a0 !== '') {
+        triples[key]["s"] = a0;
+    } else if (sbv !== '' && a0 === '') {
+        triples[key]["s"] = sbv;
     } else {
-        triples[key]["s"] = sbv;  // 主谓结构优先
+        var s1 = sbv.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+        var s2 = a0.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+        var ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
+        if (ratio > 0.6) {
+            if (s1.length >= s2.length) {  // 长的优先
+                triples[key]["s"] = sbv;
+            } else {
+                triples[key]["s"] = a0;
+            }
+        } else {
+            triples[key]["s"] = sbv;  // 主谓结构优先
+        }
     }
     // 按COO并列关系找主语
     if (!subject_found && word.$.relate === 'COO') {
@@ -352,23 +352,23 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         }
     }
     if ((typeof vob) === 'string') {
-        s1 = '';
-        if (vob !== '') {
-            s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
-        }
-        s2 = '';
-        if (a1 !== '') {
-            s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
-        }
-        ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
-        if (ratio > 0.6) {
-            if (s1.length >= s2.length) {  // 长的优先
-                triples[key]["o"] = vob;
-            } else {
-                triples[key]["o"] = a1;
-            }
+        if (a1 === '' && vob !== '') {
+            triples[key]["o"] = vob;
+        } else if (a1 !== '' && vob === '') {
+            triples[key]["o"] = a1;
         } else {
-            triples[key]["o"] = vob;  // 动宾结构优先
+            s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+            s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+            ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
+            if (ratio > 0.6) {
+                if (s1.length >= s2.length) {  // 长的优先
+                    triples[key]["o"] = vob;
+                } else {
+                    triples[key]["o"] = a1;
+                }
+            } else {
+                triples[key]["o"] = vob;  // 动宾结构优先
+            }
         }
     } else {
         triples[key]["o"] = vob;
@@ -390,19 +390,19 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
     var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word_id + "']");
     for(var child_word_idx in child_words) {
         var child_word = child_words[child_word_idx].$;
-        if (child_word.relate === 'ATT' || child_word.relate === 'SBV' || child_word.relate === 'COO' || child_word.relate === 'ADV' || child_word.relate === 'VOB' || child_word.relate === 'RAD' || child_word.relate === 'LAD') {
+        if (child_word.relate === 'ATT' || child_word.relate === 'SBV' || child_word.relate === 'COO' || child_word.relate === 'ADV' || child_word.relate === 'VOB' || child_word.relate === 'RAD' || child_word.relate === 'LAD' || child_word.relate === 'POB') {
             var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(var grandchild_word_idx in grandchild_words) {
                 var grandchild_word = grandchild_words[grandchild_word_idx].$;
-                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'SBV' || grandchild_word.relate === 'COO' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB' || grandchild_word.relate === 'RAD' || grandchild_word.relate === 'LAD') {
+                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'SBV' || grandchild_word.relate === 'COO' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB' || grandchild_word.relate === 'RAD' || grandchild_word.relate === 'LAD' || grandchild_word.relate === 'POB') {
                     var great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + grandchild_word.id + "']");
                     for(var great_grandchild_word_idx in great_grandchild_words) {
                         var great_grandchild_word = great_grandchild_words[great_grandchild_word_idx].$;
-                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'SBV' || great_grandchild_word.relate === 'COO' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB' || great_grandchild_word.relate === 'RAD' || great_grandchild_word.relate === 'LAD') {
+                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'SBV' || great_grandchild_word.relate === 'COO' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB' || great_grandchild_word.relate === 'RAD' || great_grandchild_word.relate === 'LAD' || great_grandchild_word.relate === 'POB') {
                             var great_great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + great_grandchild_word.id + "']");
                             for(var great_great_grandchild_word_idx in great_great_grandchild_words) {
                                 var great_great_grandchild_word = great_great_grandchild_words[great_great_grandchild_word_idx].$;
-                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'SBV' || great_great_grandchild_word.relate === 'COO' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB' || great_great_grandchild_word.relate === 'RAD' || great_great_grandchild_word.relate === 'LAD') {
+                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'SBV' || great_great_grandchild_word.relate === 'COO' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB' || great_great_grandchild_word.relate === 'RAD' || great_great_grandchild_word.relate === 'LAD' || great_great_grandchild_word.relate === 'POB') {
                                     atts.push(great_great_grandchild_word);
                                 }
                             }
@@ -417,7 +417,7 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
     }
     // 去掉标点和在中心语后面的词
     _.remove(atts, function(word) {
-        return word.pos === "wp" || parseInt(word.id) > parseInt(word_id);
+        return word.pos === "wp";
     });
     atts = _.sortBy(_.uniqBy(atts, 'id'), function(item) {
         return parseInt(item.id);
@@ -579,7 +579,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             }
         } else if (advs[i].pos === 'm') {  // 数量词
             if (i+1 < advs.length) {
-                if (advs[i+1].pos === 'm' || advs[i+1].pos === 'q') {
+                if (advs[i+1].pos === 'm' || advs[i+1].pos === 'q' || advs[i+1].pos.indexOf('n') >= 0) {
                     if (advs[i].cont.indexOf('(') === 0 && advs[i+1].cont.indexOf('(') < 0) {
                         adv += "({" + advs[i].cont.substr(1, advs[i].cont.length - 2) + advs[i+1].cont + "})";
                     } else if (advs[i].cont.indexOf('(') < 0 && advs[i+1].cont.indexOf('(') === 0) {
@@ -599,7 +599,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                 }
             } else {
                 var w = words[parseInt(advs[i].id) + 1].$;
-                if (w.pos === 'm' || w.pos === 'q') {
+                if (w.pos === 'm' || w.pos === 'q' || w.pos.indexOf('n') >= 0) {
                     if (advs[i].cont.indexOf('(') === 0 && w.cont.indexOf('(') < 0) {
                         adv += "({" + advs[i].cont.substr(1, advs[i].cont.length - 2) + w.cont + "})";
                     } else if (advs[i].cont.indexOf('(') < 0 && w.cont.indexOf('(') === 0) {
@@ -669,7 +669,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             }
         } else if (cmps[i].pos === 'm') {  // 数量词
             if (i+1 < cmps.length) {
-                if (cmps[i+1].pos === 'm' || cmps[i+1].pos === 'q') {
+                if (cmps[i+1].pos === 'm' || cmps[i+1].pos === 'q' || cmps[i+1].pos.indexOf('n') >= 0) {
                     if (cmps[i].cont.indexOf('(') === 0 && cmps[i+1].cont.indexOf('(') < 0) {
                         cmp += "({" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + cmps[i+1].cont + "})";
                     } else if (cmps[i].cont.indexOf('(') < 0 && cmps[i+1].cont.indexOf('(') === 0) {
@@ -689,7 +689,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                 }
             } else {
                 w = words[parseInt(cmps[i].id) + 1].$;
-                if (w.pos === 'm' || w.pos === 'q') {
+                if (w.pos === 'm' || w.pos === 'q' || w.pos.indexOf('n') >= 0) {
                     if (cmps[i].cont.indexOf('(') === 0 && w.cont.indexOf('(') < 0) {
                         cmp += "({" + cmps[i].cont.substr(1, cmps[i].cont.length - 2) + w.cont + "})";
                     } else if (cmps[i].cont.indexOf('(') < 0 && w.cont.indexOf('(') === 0) {
