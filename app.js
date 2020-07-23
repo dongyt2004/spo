@@ -424,7 +424,11 @@ function parse_sub_obj(json, para_id, sent_id, word) {  // word是主语中心�
             if (word.pos === 'm' || word.pos === 'q') {
                 att += "{" + atts[i].cont + "}";
             } else {
-                att += "【" + atts[i].cont + "】";
+                if (atts[i].pos === 'nl' || atts[i].pos === 'ns') {
+                    att += "【[" + atts[i].cont + "]】";
+                } else {
+                    att += "【" + atts[i].cont + "】";
+                }
             }
         } else if (atts[i].pos === 'nd') {
             att += "<" + atts[i].cont + ">";  // 地点的方位方向
