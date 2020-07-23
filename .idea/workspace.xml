@@ -20,8 +20,8 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="352">
-              <caret line="369" column="0" lean-forward="false" selection-start-line="369" selection-start-column="0" selection-end-line="369" selection-end-column="0" />
+            <state relative-caret-position="450">
+              <caret line="25" column="19" lean-forward="true" selection-start-line="25" selection-start-column="19" selection-end-line="25" selection-end-column="19" />
               <folding />
             </state>
           </provider>
@@ -285,7 +285,7 @@
       <workItem from="1595384352834" duration="12939000" />
       <workItem from="1595403562033" duration="2936000" />
       <workItem from="1595418966074" duration="2218000" />
-      <workItem from="1595425922847" duration="14881000" />
+      <workItem from="1595425922847" duration="15082000" />
     </task>
     <task id="LOCAL-00001" summary="my commit - 2020.6.26">
       <created>1593162087971</created>
@@ -616,11 +616,18 @@
       <option name="project" value="LOCAL" />
       <updated>1595432500072</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="my commit - 2020.7.23">
+      <created>1595473734798</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1595473734798</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="401177000" />
+    <option name="totallyTimeSpent" value="401378000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -685,7 +692,8 @@
     </ignored-roots>
     <MESSAGE value="my commit - 2020.6.26" />
     <MESSAGE value="my commit - 2020.7.20" />
-    <option name="LAST_COMMIT_MESSAGE" value="my commit - 2020.7.20" />
+    <MESSAGE value="my commit - 2020.7.23" />
+    <option name="LAST_COMMIT_MESSAGE" value="my commit - 2020.7.23" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -991,8 +999,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="352">
-          <caret line="369" column="0" lean-forward="false" selection-start-line="369" selection-start-column="0" selection-end-line="369" selection-end-column="0" />
+        <state relative-caret-position="450">
+          <caret line="25" column="19" lean-forward="true" selection-start-line="25" selection-start-column="19" selection-end-line="25" selection-end-column="19" />
           <folding />
         </state>
       </provider>
