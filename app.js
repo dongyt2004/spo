@@ -21,7 +21,7 @@ app.post("/", function (req, response) {
     }
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
+        url: "http://ltp.ruoben.com:8008/ltp",  // "http://ltp-svc:12345/ltp"
         form: {
             s: text
         },
@@ -106,7 +106,7 @@ function dedup(array) {
                 if (array[i].s.length === 0 || (typeof array[i].o) === 'string' && array[i].o.length === 0) {
                     to_del_index.push(i);
                 }
-            } else if (ratio > 0.6) {
+            } else if (ratio > 0.4) {
                 if (triple_array[i].length < triple_array[j].length) {
                     to_del_index.push(i);
                 } else {
@@ -205,18 +205,14 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     var sbv = "";
     var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word.$.id + "']");
     for(var child_word_idx in child_words) {
-        var child_word = child_words[child_word_idx];
-        if (child_word.$.relate === 'SBV') {  // 主语中心语
+        var child_word = child_words[child_word_idx].$;
+        if (child_word.relate === 'SBV') {  // 主语中心语
             subject_found = true;
-            if (child_word.$.pos === 'm' || child_word.$.pos === "q") {  // 主语中心语是数词或量词
-                sbv = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
-                sbv = sbv.replace(/}{/g, "");  // 带定语的主语
-            } else {
-                sbv = parse_att(json, para_id, sent_id, child_word.$.id, words) + "【" + child_word.$.cont + "】";  // 得到主语中心语的定语
-            }
+            sbv = parse_sub_obj(json, para_id, sent_id, child_word);  // 得到带定语的主语，child_word是主语中心语
             break;
         }
     }
+    // 确定主语是用a0还是sbv
     if (sbv === '' && a0 !== '') {
         triples[key]["s"] = a0;
     } else if (sbv !== '' && a0 === '') {
@@ -225,7 +221,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         var s1 = sbv.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
         var s2 = a0.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
         var ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
-        if (ratio > 0.6) {
+        if (ratio > 0.5) {
             if (s1.length >= s2.length) {  // 长的优先
                 triples[key]["s"] = sbv;
             } else {
@@ -250,12 +246,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
             var dbl_child_word = dbl_child_words[dbl_child_word_idx].$;
             if (dbl_child_word.relate === 'DBL') {  // 兼语，因为作二级的主语，信息量小，所以加定语
                 subject_found = true;
-                if (dbl_child_word.pos === 'm' || dbl_child_word.pos === "q") {  // 主语中心语是数词或量词
-                    subject = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "{" + dbl_child_word.cont + "}";
-                    triples[key]["s"] = subject.replace(/}{/g, "");  // 带定语的主语
-                } else {
-                    triples[key]["s"] = parse_att(json, para_id, sent_id, dbl_child_word.id, words) + "【" + dbl_child_word.cont + "】";  // 得到兼语的定语
-                }
+                triples[key]["s"] = parse_sub_obj(json, para_id, sent_id, dbl_child_word);  // 得到带定语的兼语，dbl_child_word是主语中心语
                 break;
             }
         }
@@ -342,15 +333,13 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
                         }
                     }
                 }
-            } else if (child_word.$.pos === "m" || child_word.$.pos === "q") {  // 宾语中心语是数词或量词
-                vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "{" + child_word.$.cont + "}";
-                vob = vob.replace(/}{/g, ""); // 带定语的宾语
             } else {
-                vob = parse_att(json, para_id, sent_id, child_word.$.id, words) + "【" + child_word.$.cont + "】";  // 带定语的宾语
+                vob = parse_sub_obj(json, para_id, sent_id, child_word.$);  // 得到带定语的宾语，child_word是宾语中心语
             }
             break;
         }
     }
+    // 确定宾语是用a1还是vob
     if ((typeof vob) === 'string') {
         if (a1 === '' && vob !== '') {
             triples[key]["o"] = vob;
@@ -360,7 +349,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
             s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
             s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
             ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
-            if (ratio > 0.6) {
+            if (ratio > 0.5) {
                 if (s1.length >= s2.length) {  // 长的优先
                     triples[key]["o"] = vob;
                 } else {
@@ -375,19 +364,26 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     }
     if (!subject_found && !object_found) {
         if (father_word === null) {
-            return {};
+            if (word.$.relate === 'COO') {
+                var t = flat_triples[fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(word.$.parent, 3)];
+                if (t && t.p) {
+                    t.p += triples[key]["p"];
+                    t.p = t.p.replace(/】【/g, '');
+                }
+            }
+            return {};  // 丢弃
         } else {
-            return triples[key]["p"];  //谓语是动名词
+            return triples[key]["p"];  //谓语是动名词作宾语
         }
     }
     Object.assign(flat_triples, triples);
     return triples;
 }
 
-// 解析定语
-function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主语中心语或宾语中心语id
-    var atts = [];
-    var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word_id + "']");
+// 解析带定语的完整的主语或宾语
+function parse_sub_obj(json, para_id, sent_id, word) {  // word是主语中心语或宾语中心语
+    var atts = [word];
+    var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word.id + "']");
     for(var child_word_idx in child_words) {
         var child_word = child_words[child_word_idx].$;
         if (child_word.relate === 'ATT' || child_word.relate === 'SBV' || child_word.relate === 'COO' || child_word.relate === 'ADV' || child_word.relate === 'VOB' || child_word.relate === 'RAD' || child_word.relate === 'LAD' || child_word.relate === 'POB') {
@@ -424,7 +420,13 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
     });
     var att = "";
     for(var i = 0; i < atts.length; i++) {
-        if (atts[i].pos === 'nd') {
+        if (atts[i].id === word.id) {
+            if (word.pos === 'm' || word.pos === 'q') {
+                att += "{" + atts[i].cont + "}";
+            } else {
+                att += "【" + atts[i].cont + "】";
+            }
+        } else if (atts[i].pos === 'nd') {
             att += "<" + atts[i].cont + ">";  // 地点的方位方向
         } else if (atts[i].pos === 'nh') {
             att += "`" + atts[i].cont + "`";
@@ -442,7 +444,7 @@ function parse_att(json, para_id, sent_id, word_id, words) {  // word_id是主�
             att += "~" + atts[i].cont + "~";
         }
     }
-    att = att.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/></g, '').replace(/}{/g, '').replace(/~~/g, '').replace(/》《/g, '').replace(/``/g, '');
+    att = att.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/></g, '').replace(/}{/g, '').replace(/~~/g, '').replace(/》《/g, '').replace(/``/g, '').replace(/】【/g, '');
     return att;
 }
 
