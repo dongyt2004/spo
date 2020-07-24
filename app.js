@@ -21,7 +21,7 @@ app.post("/", function (req, response) {
     }
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
+        url: "http://ltp.ruoben.com:8008/ltp",  // "http://ltp-svc:12345/ltp"
         form: {
             s: text
         },
@@ -255,7 +255,10 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     找谓语 *********************************************************************************************************************************************************
     ()：时间（状语或补语）   «»：时间的方向   []：地点（状语或补语）  <>：地点的方向   {}：数（量）词   【】：谓语中心语   ~~：其他
     */
-    triples[key]["p"] = parse_predicate(json, para_id, sent_id, word, words);
+    triples[key]["p"] = '';
+    var predicate = parse_predicate(json, para_id, sent_id, word, words, triples[key]["s"]);
+    var adv_predicate = predicate[0];  // 状语+谓语
+    var cmp = predicate[1];  // 补语
     /*
     找宾语 ********************************************************************************************************************************************************************************************
     []：地点  <>：地点的方向  ()：修饰语  {}：数（量）词  《》：机构  ``：人名  【】：宾语中心语   ~~：其他
@@ -362,6 +365,11 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     } else {
         triples[key]["o"] = vob;
     }
+    // 去除补语中包含和宾语相同的部分
+    if ((typeof triples[key]["o"]) === 'string' && triples[key]["o"] !== '' && cmp.indexOf(triples[key]["o"]) >= 0) {
+        cmp = cmp.replace(triples[key]["o"], '');
+    }
+    triples[key]["p"] = adv_predicate + cmp;  // 谓语=状语+谓语中心语+补语
     if (!subject_found && !object_found) {
         if (father_word === null) {
             if (word.$.relate === 'COO') {
@@ -453,7 +461,7 @@ function parse_sub_obj(json, para_id, sent_id, word) {  // word是主语中心�
 }
 
 // 解析谓语
-function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓语中心语
+function parse_predicate(json, para_id, sent_id, word, words, subject) {  // word是谓语中心语，subject是已解析完的主语
     var advs = [], cmps = [];  // 状语 补语
     // 处理arg
     if (word.arg) {
@@ -638,6 +646,9 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             advs[i].cont = advs[i].cont.substr(1, advs[i].cont.length - 2);
         }
     }
+    if (subject !=='' && adv.indexOf(subject) >= 0) {  // 去除状语中和主语相同的部分
+        adv = adv.replace(subject, '');
+    }
     // 合并补语
     var cmp = "";
     for(i = 0; i < cmps.length; i++) {
@@ -728,7 +739,7 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             cmps[i].cont = cmps[i].cont.substr(1, cmps[i].cont.length - 2);
         }
     }
-    return adv + "【" + word.$.cont + "】" + cmp;
+    return [adv + "【" + word.$.cont + "】", cmp];  // [状语+谓语, 补语]
 }
 
 app.listen(50000, '0.0.0.0');
