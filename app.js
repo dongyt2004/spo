@@ -21,7 +21,7 @@ app.post("/", function (req, response) {
     }
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // "http://ltp.ruoben.com:8008/ltp"
+        url: "http://ltp.ruoben.com:8008/ltp",  // http://ltp-svc:12345/ltp
         form: {
             s: text
         },
@@ -106,7 +106,7 @@ function dedup(array) {
                 if (array[i].s.length === 0 || (typeof array[i].o) === 'string' && array[i].o.length === 0) {
                     to_del_index.push(i);
                 }
-            } else if (ratio > 0.4) {
+            } else if (ratio > 0.6) {
                 if (triple_array[i].length < triple_array[j].length) {
                     to_del_index.push(i);
                 } else {
