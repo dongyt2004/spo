@@ -21,7 +21,7 @@ app.post("/", function (req, response) {
     }
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // http://ltp.ruoben.com:8008/ltp
+        url: "http://ltp.ruoben.com:8008/ltp",  // http://ltp-svc:12345/ltp
         form: {
             s: text
         },
@@ -98,6 +98,9 @@ function dedup(array) {
     for(var i=0; i<triple_array.length; i++) {
         for(var j=i+1; j<triple_array.length; j++) {
             var ratio = 1 - new Levenshtein(triple_array[i], triple_array[j]).distance / Math.max(triple_array[i].length, triple_array[j].length);
+            if (isNaN(ratio)) {
+                ratio = 0;
+            }
             if (triple_array[i].indexOf(triple_array[j]) >= 0) {
                 if (array[j].s.length === 0 || (typeof array[j].o) === 'string' && array[j].o.length === 0) {
                     to_del_index.push(j);
@@ -221,6 +224,9 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         var s1 = sbv.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
         var s2 = a0.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
         var ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
+        if (isNaN(ratio)) {
+            ratio = 0;
+        }
         if (ratio > 0.5) {
             if (s1.length >= s2.length) {  // 长的优先
                 triples[key]["s"] = sbv;
@@ -234,9 +240,9 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     // 按COO并列关系找主语
     if (!subject_found && word.$.relate === 'COO') {
         var coo_word = flat_triples[fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(word.$.parent, 3)];
-        if (coo_word && coo_word["s1"]) {
+        if (coo_word && coo_word["s"]) {
             subject_found = true;
-            triples[key]["s"] = coo_word["s1"];
+            triples[key]["s"] = coo_word["s"];
         }
     }
     // 二级主语有可能是上级的兼语
@@ -256,9 +262,14 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     ()：时间（状语或补语）   «»：时间的方向   []：地点（状语或补语）  <>：地点的方向   {}：数（量）词   【】：谓语中心语   ~~：其他
     */
     triples[key]["p"] = '';
-    var predicate = parse_predicate(json, para_id, sent_id, word, words, triples[key]["s"]);
-    var adv_predicate = predicate[0];  // 状语+谓语
-    var cmp = predicate[1];  // 补语
+    var predicates = parse_predicate(json, para_id, sent_id, word, words);
+    var adv = predicates[0];  // 状语
+    var cmp = predicates[2];  // 补语
+    if (triples[key]["s"] !== '') {
+        var r = unify(triples[key]["s"], adv);
+        triples[key]["s"] = r[0];
+        adv = r[1];
+    }
     /*
     找宾语 ********************************************************************************************************************************************************************************************
     []：地点  <>：地点的方向  ()：修饰语  {}：数（量）词  《》：机构  ``：人名  【】：宾语中心语   ~~：其他
@@ -352,6 +363,9 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
             s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
             s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
             ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
+            if (isNaN(ratio)) {
+                ratio = 0;
+            }
             if (ratio > 0.5) {
                 if (s1.length >= s2.length) {  // 长的优先
                     triples[key]["o"] = vob;
@@ -365,11 +379,12 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     } else {
         triples[key]["o"] = vob;
     }
-    // 去除补语中包含和宾语相同的部分
-    if ((typeof triples[key]["o"]) === 'string' && triples[key]["o"] !== '' && cmp.indexOf(triples[key]["o"]) >= 0) {
-        cmp = cmp.replace(triples[key]["o"], '');
+    if ((typeof triples[key]["o"]) === 'string' && triples[key]["o"] !== '') {
+        r = unify(triples[key]["o"], cmp);
+        triples[key]["o"] = r[0];
+        cmp = r[1];
     }
-    triples[key]["p"] = adv_predicate + cmp;  // 谓语=状语+谓语中心语+补语
+    triples[key]["p"] = adv + predicates[1] + cmp;  // 谓语=状语+谓语中心语+补语
     if (!subject_found && !object_found) {
         if (father_word === null) {
             if (word.$.relate === 'COO') {
@@ -460,8 +475,51 @@ function parse_sub_obj(json, para_id, sent_id, word) {  // word是主语中心�
     return att;
 }
 
+// 去除状语或补语中和主语或宾语相同的部分，如果主语或宾语中含【】，主语或宾语有中心语，是通过SBV或VOB找到的，这时删除状语或补语中相同的部分。如果主语或宾语中不含【】，主语或宾语是通过A0或A1找到的，这时删除主语或宾语中相同的部分。
+function unify(sub_obj, adv_cmp) {
+    var flush_sub_obj = sub_obj.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+    var flush_adv_cmp = adv_cmp.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/~/g, "");
+    if (flush_sub_obj.length > flush_adv_cmp.length) {
+        for(var i=0; i<flush_sub_obj.length - flush_adv_cmp.length + 1; i++) {
+            var substring = flush_sub_obj.substr(i, flush_adv_cmp.length);
+            ratio = 1 - new Levenshtein(flush_adv_cmp, substring).distance / substring.length;
+            if (isNaN(ratio)) {
+                ratio = 0;
+            }
+            if (ratio > 0.6) {
+                if (sub_obj.indexOf('【') >= 0) {
+                    return [sub_obj, ''];
+                } else {
+                    var arr = flush_sub_obj.split("");
+                    arr.splice(i, flush_adv_cmp.length);
+                    return [arr.join(""), adv_cmp];
+                }
+            }
+        }
+        return [sub_obj, adv_cmp];
+    } else {
+        for(var i=0; i<flush_adv_cmp.length - flush_sub_obj.length + 1; i++) {
+            var substring = flush_adv_cmp.substr(i, flush_sub_obj.length);
+            ratio = 1 - new Levenshtein(flush_sub_obj, substring).distance / substring.length;
+            if (isNaN(ratio)) {
+                ratio = 0;
+            }
+            if (ratio > 0.6) {
+                if (sub_obj.indexOf('【') >= 0) {
+                    var arr = flush_adv_cmp.split("");
+                    arr.splice(i, flush_sub_obj.length);
+                    return [sub_obj, arr.join("")];
+                } else {
+                    return ['', adv_cmp];
+                }
+            }
+        }
+        return [sub_obj, adv_cmp];
+    }
+}
+
 // 解析谓语
-function parse_predicate(json, para_id, sent_id, word, words, subject) {  // word是谓语中心语，subject是已解析完的主语
+function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓语中心语，subject是已解析完的主语
     var advs = [], cmps = [];  // 状语 补语
     // 处理arg
     if (word.arg) {
@@ -490,11 +548,11 @@ function parse_predicate(json, para_id, sent_id, word, words, subject) {  // wor
             }
         }
     }
-    // 处理状语的父子关系
+    // 处理状语或补语的父子关系
     var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word.$.id + "']");
     for(var child_word_idx in child_words) {
         var child_word = child_words[child_word_idx].$;
-        if (child_word.relate === 'ADV' || child_word.relate === 'ATT') {  // 状语
+        if (child_word.relate === 'ADV' || child_word.relate === 'ATT' || child_word.relate === 'LAD') {  // 状语
             var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(var grandchild_word_idx in grandchild_words) {
                 var grandchild_word = grandchild_words[grandchild_word_idx].$;
@@ -517,7 +575,7 @@ function parse_predicate(json, para_id, sent_id, word, words, subject) {  // wor
                 }
             }
             advs.push(child_word);
-        } else if (child_word.relate === 'CMP') {  // 补语
+        } else if (child_word.relate === 'CMP' || child_word.relate === 'RAD') {  // 补语
             grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(grandchild_word_idx in grandchild_words) {
                 grandchild_word = grandchild_words[grandchild_word_idx].$;
@@ -646,9 +704,6 @@ function parse_predicate(json, para_id, sent_id, word, words, subject) {  // wor
             advs[i].cont = advs[i].cont.substr(1, advs[i].cont.length - 2);
         }
     }
-    if (subject !=='' && adv.indexOf(subject) >= 0) {  // 去除状语中和主语相同的部分
-        adv = adv.replace(subject, '');
-    }
     // 合并补语
     var cmp = "";
     for(i = 0; i < cmps.length; i++) {
@@ -739,7 +794,7 @@ function parse_predicate(json, para_id, sent_id, word, words, subject) {  // wor
             cmps[i].cont = cmps[i].cont.substr(1, cmps[i].cont.length - 2);
         }
     }
-    return [adv + "【" + word.$.cont + "】", cmp];  // [状语+谓语, 补语]
+    return [adv, "【" + word.$.cont + "】", cmp];  // [状语, 谓语中心语, 补语]
 }
 
 app.listen(50000, '0.0.0.0');
