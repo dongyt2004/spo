@@ -602,6 +602,13 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
                             for(great_great_grandchild_word_idx in great_great_grandchild_words) {
                                 great_great_grandchild_word = great_great_grandchild_words[great_great_grandchild_word_idx].$;
                                 if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'POB' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB') {
+                                    great_great_great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + great_great_grandchild_word.id + "']");
+                                    for(great_great_great_grandchild_word_idx in great_great_great_grandchild_words) {
+                                        great_great_great_grandchild_word = great_great_great_grandchild_words[great_great_great_grandchild_word_idx].$;
+                                        if (great_great_great_grandchild_word.relate === 'ATT' || great_great_great_grandchild_word.relate === 'POB' || great_great_great_grandchild_word.relate === 'ADV' || great_great_great_grandchild_word.relate === 'VOB') {
+                                            cmps.push(great_great_great_grandchild_word);
+                                        }
+                                    }
                                     cmps.push(great_great_grandchild_word);
                                 }
                             }
