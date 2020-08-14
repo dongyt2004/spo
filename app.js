@@ -556,15 +556,29 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
             var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.id + "']");
             for(var grandchild_word_idx in grandchild_words) {
                 var grandchild_word = grandchild_words[grandchild_word_idx].$;
-                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'POB' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB') {
+                if (grandchild_word.relate === 'ATT' || grandchild_word.relate === 'POB' || grandchild_word.relate === 'ADV' || grandchild_word.relate === 'VOB' || grandchild_word.relate === 'RAD') {
                     var great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + grandchild_word.id + "']");
                     for(var great_grandchild_word_idx in great_grandchild_words) {
                         var great_grandchild_word = great_grandchild_words[great_grandchild_word_idx].$;
-                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'POB' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB') {
+                        if (great_grandchild_word.relate === 'ATT' || great_grandchild_word.relate === 'POB' || great_grandchild_word.relate === 'ADV' || great_grandchild_word.relate === 'VOB' || great_grandchild_word.relate === 'RAD') {
                             var great_great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + great_grandchild_word.id + "']");
                             for(var great_great_grandchild_word_idx in great_great_grandchild_words) {
                                 var great_great_grandchild_word = great_great_grandchild_words[great_great_grandchild_word_idx].$;
-                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'POB' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB') {
+                                if (great_great_grandchild_word.relate === 'ATT' || great_great_grandchild_word.relate === 'POB' || great_great_grandchild_word.relate === 'ADV' || great_great_grandchild_word.relate === 'VOB' || great_great_grandchild_word.relate === 'RAD') {
+                                    var great_great_great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + great_great_grandchild_word.id + "']");
+                                    for(var great_great_great_grandchild_word_idx in great_great_great_grandchild_words) {
+                                        var great_great_great_grandchild_word = great_great_great_grandchild_words[great_great_great_grandchild_word_idx].$;
+                                        if (great_great_great_grandchild_word.relate === 'ATT' || great_great_great_grandchild_word.relate === 'POB' || great_great_great_grandchild_word.relate === 'ADV' || great_great_great_grandchild_word.relate === 'VOB' || great_great_great_grandchild_word.relate === 'RAD') {
+                                            var great_great_great_great_grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + great_great_great_grandchild_word.id + "']");
+                                            for(var great_great_great_great_grandchild_word_idx in great_great_great_great_grandchild_words) {
+                                                var great_great_great_great_grandchild_word = great_great_great_great_grandchild_words[great_great_great_great_grandchild_word_idx].$;
+                                                if (great_great_great_great_grandchild_word.relate === 'ATT' || great_great_great_great_grandchild_word.relate === 'POB' || great_great_great_great_grandchild_word.relate === 'ADV' || great_great_great_great_grandchild_word.relate === 'VOB' || great_great_great_great_grandchild_word.relate === 'RAD') {
+                                                    advs.push(great_great_great_great_grandchild_word);
+                                                }
+                                            }
+                                            advs.push(great_great_great_grandchild_word);
+                                        }
+                                    }
                                     advs.push(great_great_grandchild_word);
                                 }
                             }
