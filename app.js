@@ -21,7 +21,7 @@ app.post("/", function (req, response) {
     }
     console.log('text=' + text);  /////////////////////
     request.post({
-        url: "http://ltp-svc:12345/ltp",  // http://ltp.ruoben.com:8008/ltp
+        url: "http://ltp.ruoben.com:8008/ltp",  // http://ltp-svc:12345/ltp
         form: {
             s: text
         },
@@ -335,7 +335,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
             object_found = true;
             if (child_word.$.pos === "v" || child_word.arg && child_word.$.pos !== 'p' && child_word.$.pos.indexOf('n') < 0) {  // 二级又是三元组
                 var triple = parse_triple(json, flat_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
-                if (JSON.stringify(triple) !== "{}") {
+                if (JSON.stringify(triple) !== "{}") {  // 一级无主语无宾语则直接丢弃
                     vob = [];
                     vob.push(triple);
                     // 找宾语动词的并列词
@@ -388,10 +388,10 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     if (!subject_found && !object_found) {
         if (father_word === null) {
             if (word.$.relate === 'COO') {
-                var t = flat_triples[fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(word.$.parent, 3)];
-                if (t && t.p) {
-                    t.p += triples[key]["p"];
-                    t.p = t.p.replace(/】【/g, '');
+                var spo = flat_triples[fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(word.$.parent, 3)];
+                if (spo && spo.p !== '' && spo.o === '') {
+                    spo.p += triples[key]["p"];
+                    spo.p = spo.p.replace(/】【/g, '');
                 }
             }
             return {};  // 丢弃
