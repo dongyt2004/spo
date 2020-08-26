@@ -166,8 +166,10 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     */
     var subject_found = false;
     triples[key]["s"] = '';
+    triples[key]["s_index"] = 100000000;
     // 按A0找主语
     var a0 = "";
+    var a0_subject_index = 100000000;
     if (word.arg) {
         for(var arg_idx in word.arg) {
             var arg = word.arg[arg_idx].$;
@@ -196,6 +198,9 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
                     } else {  // 其他
                         a0 += "~" + w.cont + "~";
                     }
+                    if (a0_subject_index === 100000000) {
+                        a0_subject_index = i;
+                    }
                 }
                 break;
             }
@@ -206,20 +211,24 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     }
     // 按主谓找，能找到的主语是最短的（有利于实体链接），但信息量小，所以加定语
     var sbv = "";
+    var sbv_subject_index = 100000000;
     var child_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + word.$.id + "']");
     for(var child_word_idx in child_words) {
         var child_word = child_words[child_word_idx].$;
         if (child_word.relate === 'SBV') {  // 主语中心语
             subject_found = true;
             sbv = parse_sub_obj(json, para_id, sent_id, child_word);  // 得到带定语的主语，child_word是主语中心语
+            sbv_subject_index = parseInt(child_word.id);
             break;
         }
     }
     // 确定主语是用a0还是sbv
     if (sbv === '' && a0 !== '') {
         triples[key]["s"] = a0;
+        triples[key]["s_index"] = a0_subject_index;
     } else if (sbv !== '' && a0 === '') {
         triples[key]["s"] = sbv;
+        triples[key]["s_index"] = sbv_subject_index;
     } else {
         var s1 = sbv.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
         var s2 = a0.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
@@ -230,11 +239,14 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         if (ratio > 0.5) {
             if (s1.length >= s2.length) {  // 长的优先
                 triples[key]["s"] = sbv;
+                triples[key]["s_index"] = sbv_subject_index;
             } else {
                 triples[key]["s"] = a0;
+                triples[key]["s_index"] = a0_subject_index;
             }
         } else {
             triples[key]["s"] = sbv;  // 主谓结构优先
+            triples[key]["s_index"] = sbv_subject_index;
         }
     }
     // 按COO并列关系找主语
@@ -243,6 +255,7 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         if (coo_word && coo_word["s"]) {
             subject_found = true;
             triples[key]["s"] = coo_word["s"];
+            triples[key]["s_index"] = coo_word['s_index'];
         }
     }
     // 二级主语有可能是上级的兼语
@@ -253,16 +266,17 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
             if (dbl_child_word.relate === 'DBL') {  // 兼语，因为作二级的主语，信息量小，所以加定语
                 subject_found = true;
                 triples[key]["s"] = parse_sub_obj(json, para_id, sent_id, dbl_child_word);  // 得到带定语的兼语，dbl_child_word是主语中心语
+                triples[key]["s_index"] = parseInt(dbl_child_word.id);
                 break;
             }
         }
     }
     /*
     找谓语 *********************************************************************************************************************************************************
-    ()：时间（状语或补语）   «»：时间的方向   []：地点（状语或补语）  <>：地点的方向   {}：数（量）词   【】：谓语中心语   ~~：其他
+    ()：时间（状语或补语）   «»：时间的方向   []：地点（状语或补语）  <>：地点的方向   {}：数（量）词   【】：谓语中心语   ~~：其他   ^：主语所在位置
     */
     triples[key]["p"] = '';
-    var predicates = parse_predicate(json, para_id, sent_id, word, words);
+    var predicates = parse_predicate(json, para_id, sent_id, word, words, triples[key]["s_index"]);
     var adv = predicates[0];  // 状语
     var cmp = predicates[2];  // 补语
     if (triples[key]["s"] !== '') {
@@ -478,7 +492,7 @@ function parse_sub_obj(json, para_id, sent_id, word) {  // word是主语中心�
 // 去除状语或补语中和主语或宾语相同的部分，如果主语或宾语中含【】，主语或宾语有中心语，是通过SBV或VOB找到的，这时删除状语或补语中相同的部分。如果主语或宾语中不含【】，主语或宾语是通过A0或A1找到的，这时删除主语或宾语中相同的部分。
 function unify(sub_obj, adv_cmp) {
     var flush_sub_obj = sub_obj.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
-    var flush_adv_cmp = adv_cmp.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/~/g, "");
+    var flush_adv_cmp = adv_cmp.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/~/g, "").replace(/\^/g, "");
     if (flush_sub_obj.length > flush_adv_cmp.length) {
         for(var i=0; i<flush_sub_obj.length - flush_adv_cmp.length + 1; i++) {
             var substring = flush_sub_obj.substr(i, flush_adv_cmp.length);
@@ -519,7 +533,7 @@ function unify(sub_obj, adv_cmp) {
 }
 
 // 解析谓语
-function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓语中心语，subject是已解析完的主语
+function parse_predicate(json, para_id, sent_id, word, words, subject_index) {  // word是谓语中心语，subject是已解析完的主语
     var advs = [], cmps = [];  // 状语 补语
     // 处理arg
     if (word.arg) {
@@ -637,7 +651,12 @@ function parse_predicate(json, para_id, sent_id, word, words) {  // word是谓�
     });
     // 合并状语
     var adv = "";
+    var added_subject_index = false;
     for(i = 0; i < advs.length; i++) {
+        if (!added_subject_index && parseInt(advs[i].id) > subject_index) {
+            adv += "^";
+            added_subject_index = true;
+        }
         if (advs[i].pos === 'nt') {  // 时间
             if (advs[i].cont.indexOf('(') === 0) {
                 adv += advs[i].cont;
