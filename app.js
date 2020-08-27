@@ -145,7 +145,7 @@ function stringify(spo_object) {
             }
         }
     }
-    return s.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/~/g, "").replace(/«/g, "").replace(/»/g, "");
+    return s.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/~/g, "").replace(/«/g, "").replace(/»/g, "");
 }
 
 function fix(num, length) {
@@ -230,8 +230,8 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         triples[key]["s"] = sbv;
         triples[key]["s_index"] = sbv_subject_index;
     } else {
-        var s1 = sbv.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
-        var s2 = a0.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+        var s1 = sbv.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+        var s2 = a0.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
         var ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
         if (isNaN(ratio)) {
             ratio = 0;
@@ -351,7 +351,11 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
                 var triple = parse_triple(json, flat_triples, fix(para_id, 2) + "-" + fix(sent_id, 2) + "-" + fix(child_word.$.id, 3), para_id, sent_id, child_word, word, words);
                 if (JSON.stringify(triple) !== "{}") {  // 一级无主语无宾语则直接丢弃
                     vob = [];
-                    vob.push(triple);
+                    if ((typeof triple) === 'string') {
+                        vob.push(triple);
+                    } else {
+                        vob.push(reshape(triples[key]["s"], adv, triple));
+                    }
                     // 找宾语动词的并列词
                     var grandchild_words = xpath.find(json, "//para[@id='" + para_id + "']/sent[@id='" + sent_id + "']/word[@parent='" + child_word.$.id + "']");
                     for(var grandchild_word_idx in grandchild_words) {
@@ -374,8 +378,8 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
         } else if (a1 !== '' && vob === '') {
             triples[key]["o"] = a1;
         } else {
-            s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
-            s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+            s1 = vob.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+            s2 = a1.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
             ratio = 1 - new Levenshtein(s1, s2).distance / Math.max(s1.length, s2.length);
             if (isNaN(ratio)) {
                 ratio = 0;
@@ -415,6 +419,35 @@ function parse_triple(json, flat_triples, key, para_id, sent_id, word, father_wo
     }
     Object.assign(flat_triples, triples);
     return triples;
+}
+
+function reshape(subject, adv, spo_object) {
+    var key;
+    var triple;
+    for(var id in spo_object) {
+        key = id;
+        triple = spo_object[id];
+        break;
+    }
+    var s = subject.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+    var a = adv.replace(/\(/g, "").replace(/\)/g, "").replace(/«/g, "").replace(/»/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/{/g, "").replace(/}/g, "").replace(/~/g, "").replace(/\^/g, "")
+    var spo_subject = triple.s.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+    var spo_adv = triple.p.slice(0, triple.p.indexOf('【')).replace(/\(/g, "").replace(/\)/g, "").replace(/«/g, "").replace(/»/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/{/g, "").replace(/}/g, "").replace(/~/g, "").replace(/\^/g, "")
+    var ratio = 1 - new Levenshtein(s, spo_subject).distance / Math.max(s.length, spo_subject.length);
+    if (isNaN(ratio)) {
+        ratio = 0;
+    }
+    if (ratio > 0.8) {
+        triple.s = "";
+    }
+    ratio = 1 - new Levenshtein(a, spo_adv).distance / Math.max(a.length, spo_adv.length);
+    if (isNaN(ratio)) {
+        ratio = 0;
+    }
+    if (ratio > 0.8) {
+        triple.p = triple.p.slice(triple.p.indexOf('【'));
+    }
+    return {key: triple};
 }
 
 // 解析带定语的完整的主语或宾语
@@ -491,8 +524,8 @@ function parse_sub_obj(json, para_id, sent_id, word) {  // word是主语中心�
 
 // 去除状语或补语中和主语或宾语相同的部分，如果主语或宾语中含【】，主语或宾语有中心语，是通过SBV或VOB找到的，这时删除状语或补语中相同的部分。如果主语或宾语中不含【】，主语或宾语是通过A0或A1找到的，这时删除主语或宾语中相同的部分。
 function unify(sub_obj, adv_cmp) {
-    var flush_sub_obj = sub_obj.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
-    var flush_adv_cmp = adv_cmp.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/]/g, "").replace(/</g, "").replace(/>/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/~/g, "").replace(/\^/g, "");
+    var flush_sub_obj = sub_obj.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/【/g, "").replace(/】/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/《/g, "").replace(/》/g, "").replace(/`/g, "").replace(/~/g, "");
+    var flush_adv_cmp = adv_cmp.replace(/{/g, "").replace(/}/g, "").replace(/\[/g, "").replace(/\]/g, "").replace(/</g, "").replace(/>/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/~/g, "").replace(/\^/g, "");
     if (flush_sub_obj.length > flush_adv_cmp.length) {
         for(var i=0; i<flush_sub_obj.length - flush_adv_cmp.length + 1; i++) {
             var substring = flush_sub_obj.substr(i, flush_adv_cmp.length);
