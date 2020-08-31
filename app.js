@@ -770,7 +770,7 @@ function parse_predicate(json, para_id, sent_id, word, words, subject_index) {  
             }
         }
     }
-    if (!added_subject_index) {
+    if (!added_subject_index && adv !=='' && subject_index !== 100000000) {
         adv += "^";
     }
     adv = adv.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/~~/g, "").replace(/></g, "").replace(/»«/g, "").replace(/}{/g, '').replace(/\)\(/g, '');
