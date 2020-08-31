@@ -770,6 +770,9 @@ function parse_predicate(json, para_id, sent_id, word, words, subject_index) {  
             }
         }
     }
+    if (!added_subject_index) {
+        adv += "^";
+    }
     adv = adv.replace(/\)\(/g, '').replace(/\]\[/g, '').replace(/~~/g, "").replace(/></g, "").replace(/»«/g, "").replace(/}{/g, '').replace(/\)\(/g, '');
     // 把每个word本身加的()或[]去掉
     for(i = 0; i < advs.length; i++) {
